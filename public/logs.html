@@ -199,7 +199,8 @@
             };
             
             ws.onmessage = (event) => {
-                const log = JSON.parse(event.data);
+                const rawLog = JSON.parse(event.data);
+                const log = decodeLog(rawLog);
                 if (shouldDisplayLog(log)) {
                     logs.unshift(log);
                     const limit = parseInt(document.getElementById('limitFilter').value) || 100;
@@ -238,11 +239,45 @@
             return patterns.some(pattern => pattern.test(testString));
         }
 
+        // Décoder base64
+        function b64Decode(str) {
+            try {
+                return atob(str);
+            } catch(e) {
+                return str;
+            }
+        }
+        
+        // Décoder un log encodé
+        function decodeLog(log) {
+            if (!log._encoded) return log;
+            const decoded = { ...log };
+            if (decoded.url) decoded.url = b64Decode(decoded.url);
+            if (decoded.payload) decoded.payload = b64Decode(decoded.payload);
+            if (decoded.rawBody) decoded.rawBody = b64Decode(decoded.rawBody);
+            if (decoded.query) {
+                try {
+                    decoded.query = JSON.parse(b64Decode(decoded.query));
+                } catch(e) {
+                    decoded.query = {};
+                }
+            }
+            if (decoded.body) {
+                try {
+                    const bodyStr = b64Decode(decoded.body);
+                    decoded.body = JSON.parse(bodyStr);
+                } catch(e) {
+                    decoded.body = { _raw: b64Decode(decoded.body) };
+                }
+            }
+            return decoded;
+        }
+
         function loadInitialLogs() {
             fetch('/api/logs')
                 .then(res => res.json())
                 .then(data => {
-                    logs = data.filter(shouldDisplayLog);
+                    logs = data.map(decodeLog).filter(shouldDisplayLog);
                     updateLogsDisplay();
                 });
         }

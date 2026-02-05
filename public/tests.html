@@ -281,11 +281,31 @@
     let PAYLOADS = {};
     let payloadsLoaded = false;
     
+    // Décoder base64
+    function b64Decode(str) {
+        try {
+            return atob(str);
+        } catch(e) {
+            return str;
+        }
+    }
+    
     // Charger les payloads au démarrage
     async function loadPayloads() {
         try {
             const response = await fetch('/api/payloads');
-            PAYLOADS = await response.json();
+            const result = await response.json();
+            
+            // Décoder les payloads si encodés
+            if (result.encoded && result.data) {
+                PAYLOADS = {};
+                for (const [category, items] of Object.entries(result.data)) {
+                    PAYLOADS[category] = items.map(p => b64Decode(p));
+                }
+            } else {
+                PAYLOADS = result;
+            }
+            
             payloadsLoaded = true;
             generateCategories();
         } catch(e) {
