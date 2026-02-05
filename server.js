@@ -45,6 +45,10 @@ db.serialize(() => {
 let requestLogs = [];
 let stats = JSON.parse(fs.readFileSync(statsFile, 'utf8'));
 
+// Initialiser les stats si nécessaire
+if (!stats.byIp) stats.byIp = {};
+if (!stats.byCountry) stats.byCountry = {};
+
 // WebSocket pour les logs en temps réel
 const clients = new Set();
 wss.on('connection', (ws) => {
@@ -63,24 +67,68 @@ function broadcastLog(logEntry) {
 
 // Fonction de détection d'attaque
 function detectAttack(req) {
+  // Ne pas analyser les requêtes vers les ressources statiques
+  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|map)$/)) {
+    return false;
+  }
+  
+  // Ne pas analyser les requêtes API internes
+  if (req.url.startsWith('/api/')) {
+    return false;
+  }
+  
   const suspiciousPatterns = [
-    /(\.\.[\/\\]|\.\.%2[fF])/,  // Path traversal
-    /(<script|javascript:|onerror=|onload=)/i,  // XSS
-    /(union|select|insert|update|delete|drop|create|alter|exec|script|char|nchar|varchar)/i,  // SQL Injection
-    /(sleep\(|benchmark\(|waitfor delay)/i,  // SQL Time-based
-    /(\$ne|\$gt|\$lt|\$or|\$and)/,  // NoSQL Injection
-    /(\||;|&|\n|\r|`|\$\()/,  // Command Injection
-    /(file:\/\/|php:\/\/|data:)/i,  // File inclusion
-    /(<\?xml|<!DOCTYPE|<!ENTITY)/i,  // XXE
-    /(\{\{|\}\}|<%|%>)/,  // Template Injection
-    /(eval\(|exec\(|system\()/i,  // Code Injection
+    // Path traversal - plus précis
+    /(\.\.[\/\\]){2,}/,  // ../.. ou plus
+    /\.\.%2[fF].*\.\.%2[fF]/,  // Encodé multiple fois
+    
+    // XSS - plus précis
+    /<script[^>]*>.*<\/script>/i,
+    /javascript:\s*alert/i,
+    /onerror\s*=\s*['"]/i,
+    /onload\s*=\s*['"]/i,
+    
+    // SQL Injection - plus précis, éviter les faux positifs
+    /(union\s+(all\s+)?select)/i,
+    /(select\s+.*\s+from\s+.*\s+where)/i,
+    /('\s+or\s+'1'\s*=\s*'1)/i,
+    /('\s+or\s+1\s*=\s*1)/i,
+    /(drop\s+table)/i,
+    /(insert\s+into\s+.*\s+values)/i,
+    
+    // SQL Time-based
+    /(sleep\s*\(\s*\d+\s*\)|benchmark\s*\(|waitfor\s+delay)/i,
+    
+    // NoSQL Injection - en contexte JSON
+    /\{\s*['"]\$ne['"]\s*:\s*null\s*\}/,
+    /\{\s*['"]\$(gt|lt|or|and)['"]\s*:/,
+    
+    // Command Injection - plus précis
+    /;\s*(cat|ls|wget|curl|nc|bash|sh)\s+/i,
+    /\|\s*(cat|ls|wget|curl|nc|bash|sh)\s+/i,
+    /`.*`/,
+    /\$\(.*\)/,
+    
+    // File inclusion
+    /(file:\/\/\/etc\/passwd|php:\/\/filter|data:text\/html)/i,
+    
+    // XXE - plus précis
+    /<!ENTITY[^>]+SYSTEM[^>]+>/i,
+    /<!DOCTYPE[^>]+\[.*<!ENTITY/is,
+    
+    // Template Injection
+    /\{\{.*[+\-*\/].*\}\}/,
+    /<%=.*%>/,
+    
+    // Code Injection
+    /(eval|exec|system)\s*\(/i,
   ];
   
+  // Tester uniquement URL, query et body - pas les headers standards
   const testString = JSON.stringify({
     url: req.url,
     query: req.query,
-    body: req.body,
-    headers: req.headers
+    body: typeof req.body === 'object' ? req.body : {}
   });
   
   return suspiciousPatterns.some(pattern => pattern.test(testString));
@@ -142,6 +190,17 @@ app.use((req, res, next) => {
   stats.total++;
   const vulnType = req.headers['x-vuln-type'] || 'unknown';
   stats.byVuln[vulnType] = (stats.byVuln[vulnType] || 0) + 1;
+  
+  // Stats par IP
+  stats.byIp[cleanIp] = (stats.byIp[cleanIp] || 0) + 1;
+  
+  // Stats par pays
+  if (geoData && geoData.country) {
+    stats.byCountry[geoData.country] = (stats.byCountry[geoData.country] || 0) + 1;
+  } else {
+    stats.byCountry['Unknown'] = (stats.byCountry['Unknown'] || 0) + 1;
+  }
+  
   fs.writeFileSync(statsFile, JSON.stringify(stats));
   
   next();

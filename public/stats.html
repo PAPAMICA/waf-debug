@@ -34,15 +34,15 @@
             <p class="text-gray-300">Analytics et métriques des requêtes</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <div class="bg-gray-800 rounded-lg p-6 border border-green-500">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-400 text-sm mb-1">Total Requêtes</p>
-                        <p id="totalRequests" class="text-4xl font-bold text-white">0</p>
+                        <p class="text-gray-400 text-xs mb-1">Total Requêtes</p>
+                        <p id="totalRequests" class="text-3xl font-bold text-white">0</p>
                     </div>
-                    <div class="bg-green-500 rounded-full p-4">
-                        <i class="fas fa-server text-2xl text-white"></i>
+                    <div class="bg-green-500 rounded-full p-3">
+                        <i class="fas fa-server text-xl text-white"></i>
                     </div>
                 </div>
             </div>
@@ -50,11 +50,23 @@
             <div class="bg-gray-800 rounded-lg p-6 border border-blue-500">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-400 text-sm mb-1">Types de Vulnérabilités</p>
-                        <p id="vulnTypes" class="text-4xl font-bold text-white">0</p>
+                        <p class="text-gray-400 text-xs mb-1">Vulnérabilités</p>
+                        <p id="vulnTypes" class="text-3xl font-bold text-white">0</p>
                     </div>
-                    <div class="bg-blue-500 rounded-full p-4">
-                        <i class="fas fa-bug text-2xl text-white"></i>
+                    <div class="bg-blue-500 rounded-full p-3">
+                        <i class="fas fa-bug text-xl text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 rounded-lg p-6 border border-purple-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-xs mb-1">IPs Uniques</p>
+                        <p id="uniqueIps" class="text-3xl font-bold text-white">0</p>
+                    </div>
+                    <div class="bg-purple-500 rounded-full p-3">
+                        <i class="fas fa-network-wired text-xl text-white"></i>
                     </div>
                 </div>
             </div>
@@ -62,11 +74,23 @@
             <div class="bg-gray-800 rounded-lg p-6 border border-yellow-500">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-400 text-sm mb-1">Requêtes/Minute</p>
-                        <p id="reqPerMin" class="text-4xl font-bold text-white">0</p>
+                        <p class="text-gray-400 text-xs mb-1">Pays</p>
+                        <p id="uniqueCountries" class="text-3xl font-bold text-white">0</p>
                     </div>
-                    <div class="bg-yellow-500 rounded-full p-4">
-                        <i class="fas fa-tachometer-alt text-2xl text-white"></i>
+                    <div class="bg-yellow-500 rounded-full p-3">
+                        <i class="fas fa-globe text-xl text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 rounded-lg p-6 border border-orange-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-xs mb-1">Req/Minute</p>
+                        <p id="reqPerMin" class="text-3xl font-bold text-white">0</p>
+                    </div>
+                    <div class="bg-orange-500 rounded-full p-3">
+                        <i class="fas fa-tachometer-alt text-xl text-white"></i>
                     </div>
                 </div>
             </div>
@@ -87,6 +111,26 @@
                     Top Vulnérabilités Testées
                 </h2>
                 <div id="topVulns" class="space-y-3">
+                    <!-- Les données seront insérées ici -->
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-800 rounded-lg p-6 border border-yellow-500">
+                <h2 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-flag text-yellow-400 mr-2"></i>
+                    Requêtes par Pays
+                </h2>
+                <canvas id="countryChart"></canvas>
+            </div>
+
+            <div class="bg-gray-800 rounded-lg p-6 border border-purple-500">
+                <h2 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-network-wired text-purple-400 mr-2"></i>
+                    Top IPs
+                </h2>
+                <div id="topIps" class="space-y-3 max-h-96 overflow-y-auto">
                     <!-- Les données seront insérées ici -->
                 </div>
             </div>
@@ -117,6 +161,18 @@
 
     <script>
         let vulnChart;
+        let countryChart;
+
+        function getCountryFlag(countryCode) {
+            if (!countryCode || countryCode === 'Unknown') return '🌍';
+            
+            // Convertir le code pays en emoji drapeau
+            const codePoints = countryCode
+                .toUpperCase()
+                .split('')
+                .map(char => 127397 + char.charCodeAt());
+            return String.fromCodePoint(...codePoints);
+        }
 
         function loadStats() {
             fetch('/api/stats')
@@ -129,15 +185,17 @@
         function updateStatsDisplay(stats) {
             // Mise à jour des cartes
             document.getElementById('totalRequests').textContent = stats.total;
-            document.getElementById('vulnTypes').textContent = Object.keys(stats.byVuln).length;
-            document.getElementById('reqPerMin').textContent = '~' + Math.round(stats.total / 60);
+            document.getElementById('vulnTypes').textContent = Object.keys(stats.byVuln || {}).filter(k => k !== 'unknown').length;
+            document.getElementById('uniqueIps').textContent = Object.keys(stats.byIp || {}).length;
+            document.getElementById('uniqueCountries').textContent = Object.keys(stats.byCountry || {}).length;
+            document.getElementById('reqPerMin').textContent = Math.round(stats.total / 60);
 
-            // Préparation des données pour le graphique
+            // Préparation des données pour le graphique vulnérabilités
             const vulnData = Object.entries(stats.byVuln)
                 .filter(([key]) => key !== 'unknown')
                 .sort((a, b) => b[1] - a[1]);
 
-            // Graphique en camembert
+            // Graphique en camembert des vulnérabilités
             const ctx = document.getElementById('vulnChart').getContext('2d');
             
             if (vulnChart) {
@@ -187,6 +245,72 @@
                 </div>
             `).join('');
             document.getElementById('topVulns').innerHTML = topVulnsHtml || '<p class="text-gray-400">Aucune donnée disponible</p>';
+
+            // === STATS PAR PAYS ===
+            const countryData = Object.entries(stats.byCountry || {})
+                .sort((a, b) => b[1] - a[1]);
+
+            const ctxCountry = document.getElementById('countryChart').getContext('2d');
+            
+            if (countryChart) {
+                countryChart.destroy();
+            }
+
+            countryChart = new Chart(ctxCountry, {
+                type: 'bar',
+                data: {
+                    labels: countryData.map(([country]) => getCountryFlag(country) + ' ' + country),
+                    datasets: [{
+                        label: 'Requêtes',
+                        data: countryData.map(([, count]) => count),
+                        backgroundColor: '#eab308',
+                        borderColor: '#facc15',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#fff' },
+                            grid: { color: '#374151' }
+                        },
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { color: '#374151' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // === STATS PAR IP ===
+            const ipData = Object.entries(stats.byIp || {})
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            const topIpsHtml = ipData.map(([ip, count]) => `
+                <div class="flex items-center justify-between p-3 bg-gray-700 rounded hover:bg-gray-600 transition-all">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-network-wired text-purple-400"></i>
+                        <span class="text-white font-mono text-sm">${ip}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-24 h-2 bg-gray-600 rounded-full">
+                            <div class="h-2 bg-purple-500 rounded-full" style="width: ${(count/stats.total)*100}%"></div>
+                        </div>
+                        <span class="text-white font-semibold text-sm w-12 text-right">${count}</span>
+                        <span class="text-gray-400 text-xs">(${((count/stats.total)*100).toFixed(1)}%)</span>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('topIps').innerHTML = topIpsHtml || '<p class="text-gray-400">Aucune donnée disponible</p>';
 
             // Tableau détaillé
             const tableHtml = vulnData.map(([name, count]) => `

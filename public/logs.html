@@ -148,8 +148,8 @@
                             <div class="flex items-center">
                                 <span class="text-white font-mono text-sm mr-2">${realIp}</span>
                                 ${geoInfo ? `
-                                    <span class="text-xs bg-blue-600 text-white px-2 py-1 rounded flex items-center" title="${geoInfo.city || ''}, ${geoInfo.region || ''}">
-                                        <i class="fas fa-flag mr-1"></i>${geoInfo.country}
+                                    <span class="text-sm px-2 py-1 rounded flex items-center" title="${geoInfo.city || ''}, ${geoInfo.region || ''}">
+                                        ${getCountryFlag(geoInfo.country)} ${geoInfo.country}
                                     </span>
                                 ` : ''}
                             </div>
@@ -256,6 +256,17 @@
                 logs = [];
                 updateLogsDisplay();
             }
+        }
+
+        function getCountryFlag(countryCode) {
+            if (!countryCode) return '🌍';
+            
+            // Convertir le code pays en emoji drapeau
+            const codePoints = countryCode
+                .toUpperCase()
+                .split('')
+                .map(char => 127397 + char.charCodeAt());
+            return String.fromCodePoint(...codePoints);
         }
 
         document.getElementById('searchInput').addEventListener('input', updateLogsDisplay);

@@ -30,15 +30,31 @@
             <h1 class="text-4xl font-bold text-white mb-4">
                 <i class="fas fa-shield-virus text-red-400"></i> Tests de Vulnérabilités
             </h1>
-            <p class="text-gray-300">Testez différents types d'attaques web depuis l'extérieur</p>
+            <p class="text-gray-300">Testez différents types d'attaques web à travers votre WAF</p>
+            
+            <!-- Configuration WAF -->
             <div class="mt-4 bg-blue-900 border border-blue-600 rounded-lg p-4">
                 <div class="flex items-start">
-                    <i class="fas fa-info-circle text-blue-300 text-2xl mr-3 mt-1"></i>
-                    <div class="text-blue-200">
-                        <p class="font-semibold mb-2">Ces tests doivent être exécutés depuis l'extérieur</p>
-                        <p class="text-sm">
-                            Pour tester votre WAF correctement, utilisez les commandes curl ci-dessous depuis votre terminal ou un autre serveur.
-                            Le header <code class="bg-blue-800 px-1 rounded">X-Real-IP</code> sera utilisé pour identifier l'IP réelle.
+                    <i class="fas fa-cog text-blue-300 text-2xl mr-3 mt-1"></i>
+                    <div class="flex-1">
+                        <p class="font-semibold mb-3 text-blue-100">Configuration du WAF</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-blue-200 text-sm mb-1">URL du WAF (domaine avec WAF)</label>
+                                <input type="text" id="wafDomain" value="http://localhost" 
+                                    placeholder="http://votre-waf.exemple.com"
+                                    class="w-full bg-blue-950 text-white px-3 py-2 rounded border border-blue-700 focus:border-blue-500 focus:outline-none text-sm font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-blue-200 text-sm mb-1">Votre IP (X-Real-IP)</label>
+                                <input type="text" id="realIp" value="" 
+                                    placeholder="Votre IP publique"
+                                    class="w-full bg-blue-950 text-white px-3 py-2 rounded border border-blue-700 focus:border-blue-500 focus:outline-none text-sm font-mono">
+                            </div>
+                        </div>
+                        <p class="text-xs text-blue-300 mt-2">
+                            <i class="fas fa-lightbulb mr-1"></i>
+                            Les requêtes seront envoyées via le domaine du WAF. Laissez localhost pour tester sans WAF.
                         </p>
                     </div>
                 </div>
@@ -74,20 +90,10 @@
                             <input type="text" id="sqli-input" value="admin' OR '1'='1" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-red-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div>
-                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
-                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
-                                <code id="sqli-curl" class="text-green-400 text-xs break-all select-all"></code>
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="copyCurl('sqli-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-copy mr-2"></i>Copier
-                            </button>
-                            <button onclick="generateCurl('sqli')" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-sync mr-2"></i>Générer
-                            </button>
-                        </div>
+                        <button onclick="testSQLi()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                            <i class="fas fa-play mr-2"></i>Lancer le Test
+                        </button>
+                        <div id="sqli-result" class="hidden"></div>
                     </div>
                 </div>
             </div>
@@ -114,20 +120,10 @@
                             <input type="text" id="xss-input" value="<script>alert('XSS')</script>" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-orange-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div>
-                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
-                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
-                                <code id="xss-curl" class="text-green-400 text-xs break-all select-all"></code>
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="copyCurl('xss-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-copy mr-2"></i>Copier
-                            </button>
-                            <button onclick="generateCurl('xss')" class="flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-sync mr-2"></i>Générer
-                            </button>
-                        </div>
+                        <button onclick="testXSS()" class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                            <i class="fas fa-play mr-2"></i>Lancer le Test
+                        </button>
+                        <div id="xss-result" class="hidden"></div>
                     </div>
                 </div>
             </div>
@@ -154,20 +150,10 @@
                             <input type="text" id="path-input" value="../../../etc/passwd" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-yellow-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div>
-                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
-                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
-                                <code id="path-curl" class="text-green-400 text-xs break-all select-all"></code>
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="copyCurl('path-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-copy mr-2"></i>Copier
-                            </button>
-                            <button onclick="generateCurl('path')" class="flex-1 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-sync mr-2"></i>Générer
-                            </button>
-                        </div>
+                        <button onclick="testPathTraversal()" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                            <i class="fas fa-play mr-2"></i>Lancer le Test
+                        </button>
+                        <div id="path-result" class="hidden"></div>
                     </div>
                 </div>
             </div>
@@ -194,20 +180,10 @@
                             <input type="text" id="cmd-input" value="localhost; cat /etc/passwd" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-green-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div>
-                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
-                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
-                                <code id="cmd-curl" class="text-green-400 text-xs break-all select-all"></code>
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="copyCurl('cmd-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-copy mr-2"></i>Copier
-                            </button>
-                            <button onclick="generateCurl('cmd')" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-sync mr-2"></i>Générer
-                            </button>
-                        </div>
+                        <button onclick="testCommandInjection()" class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                            <i class="fas fa-play mr-2"></i>Lancer le Test
+                        </button>
+                        <div id="cmd-result" class="hidden"></div>
                     </div>
                 </div>
             </div>
@@ -234,20 +210,10 @@
                             <input type="text" id="ssrf-input" value="http://localhost:22" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-blue-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div>
-                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
-                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
-                                <code id="ssrf-curl" class="text-green-400 text-xs break-all select-all"></code>
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="copyCurl('ssrf-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-copy mr-2"></i>Copier
-                            </button>
-                            <button onclick="generateCurl('ssrf')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-sync mr-2"></i>Générer
-                            </button>
-                        </div>
+                        <button onclick="testSSRF()" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                            <i class="fas fa-play mr-2"></i>Lancer le Test
+                        </button>
+                        <div id="ssrf-result" class="hidden"></div>
                     </div>
                 </div>
             </div>
@@ -274,20 +240,10 @@
                             <input type="text" id="nosqli-input" value='{"$ne": null}' 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-purple-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div>
-                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
-                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
-                                <code id="nosqli-curl" class="text-green-400 text-xs break-all select-all"></code>
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="copyCurl('nosqli-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-copy mr-2"></i>Copier
-                            </button>
-                            <button onclick="generateCurl('nosqli')" class="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-sync mr-2"></i>Générer
-                            </button>
-                        </div>
+                        <button onclick="testNoSQLi()" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                            <i class="fas fa-play mr-2"></i>Lancer le Test
+                        </button>
+                        <div id="nosqli-result" class="hidden"></div>
                     </div>
                 </div>
             </div>
@@ -314,20 +270,10 @@
                             <input type="text" id="lfi-input" value="/etc/passwd" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-pink-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div>
-                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
-                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
-                                <code id="lfi-curl" class="text-green-400 text-xs break-all select-all"></code>
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="copyCurl('lfi-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-copy mr-2"></i>Copier
-                            </button>
-                            <button onclick="generateCurl('lfi')" class="flex-1 bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-sync mr-2"></i>Générer
-                            </button>
-                        </div>
+                        <button onclick="testLFI()" class="w-full bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                            <i class="fas fa-play mr-2"></i>Lancer le Test
+                        </button>
+                        <div id="lfi-result" class="hidden"></div>
                     </div>
                 </div>
             </div>
@@ -354,20 +300,10 @@
                             <input type="text" id="redirect-input" value="https://evil.com" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-red-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div>
-                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
-                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
-                                <code id="redirect-curl" class="text-green-400 text-xs break-all select-all"></code>
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="copyCurl('redirect-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-copy mr-2"></i>Copier
-                            </button>
-                            <button onclick="generateCurl('redirect')" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-sync mr-2"></i>Générer
-                            </button>
-                        </div>
+                        <button onclick="testOpenRedirect()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                            <i class="fas fa-play mr-2"></i>Lancer le Test
+                        </button>
+                        <div id="redirect-result" class="hidden"></div>
                     </div>
                 </div>
             </div>
@@ -393,20 +329,10 @@
                             <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload XML</label>
                             <textarea id="xxe-input" rows="4" class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-orange-500 focus:outline-none transition-all font-mono"><?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo></textarea>
                         </div>
-                        <div>
-                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
-                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
-                                <code id="xxe-curl" class="text-green-400 text-xs break-all select-all"></code>
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="copyCurl('xxe-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-copy mr-2"></i>Copier
-                            </button>
-                            <button onclick="generateCurl('xxe')" class="flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
-                                <i class="fas fa-sync mr-2"></i>Générer
-                            </button>
-                        </div>
+                        <button onclick="testXXE()" class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                            <i class="fas fa-play mr-2"></i>Lancer le Test
+                        </button>
+                        <div id="xxe-result" class="hidden"></div>
                     </div>
                 </div>
             </div>
@@ -451,124 +377,43 @@
             `;
         }
 
-        // === GÉNÉRATION DES COMMANDES CURL ===
-        const serverUrl = window.location.origin;
-
-        function generateCurl(type) {
-            let curl = '';
-            let payload = '';
-            
-            switch(type) {
-                case 'sqli':
-                    payload = document.getElementById('sqli-input').value;
-                    curl = `curl -X GET "${serverUrl}/vuln/sqli?username=${encodeURIComponent(payload)}" \\
-  -H "X-Real-IP: YOUR_IP" \\
-  -H "X-Vuln-Type: sqli"`;
-                    document.getElementById('sqli-curl').textContent = curl;
-                    break;
-                    
-                case 'xss':
-                    payload = document.getElementById('xss-input').value;
-                    curl = `curl -X GET "${serverUrl}/vuln/xss?name=${encodeURIComponent(payload)}" \\
-  -H "X-Real-IP: YOUR_IP" \\
-  -H "X-Vuln-Type: xss"`;
-                    document.getElementById('xss-curl').textContent = curl;
-                    break;
-                    
-                case 'path':
-                    payload = document.getElementById('path-input').value;
-                    curl = `curl -X GET "${serverUrl}/vuln/path-traversal?file=${encodeURIComponent(payload)}" \\
-  -H "X-Real-IP: YOUR_IP" \\
-  -H "X-Vuln-Type: path-traversal"`;
-                    document.getElementById('path-curl').textContent = curl;
-                    break;
-                    
-                case 'cmd':
-                    payload = document.getElementById('cmd-input').value;
-                    curl = `curl -X GET "${serverUrl}/vuln/command-injection?host=${encodeURIComponent(payload)}" \\
-  -H "X-Real-IP: YOUR_IP" \\
-  -H "X-Vuln-Type: command-injection"`;
-                    document.getElementById('cmd-curl').textContent = curl;
-                    break;
-                    
-                case 'ssrf':
-                    payload = document.getElementById('ssrf-input').value;
-                    curl = `curl -X GET "${serverUrl}/vuln/ssrf?url=${encodeURIComponent(payload)}" \\
-  -H "X-Real-IP: YOUR_IP" \\
-  -H "X-Vuln-Type: ssrf"`;
-                    document.getElementById('ssrf-curl').textContent = curl;
-                    break;
-                    
-                case 'nosqli':
-                    payload = document.getElementById('nosqli-input').value;
-                    curl = `curl -X POST "${serverUrl}/vuln/nosqli" \\
-  -H "Content-Type: application/json" \\
-  -H "X-Real-IP: YOUR_IP" \\
-  -H "X-Vuln-Type: nosqli" \\
-  -d '{"username": ${payload}, "password": ${payload}}'`;
-                    document.getElementById('nosqli-curl').textContent = curl;
-                    break;
-                    
-                case 'lfi':
-                    payload = document.getElementById('lfi-input').value;
-                    curl = `curl -X GET "${serverUrl}/vuln/lfi?page=${encodeURIComponent(payload)}" \\
-  -H "X-Real-IP: YOUR_IP" \\
-  -H "X-Vuln-Type: lfi"`;
-                    document.getElementById('lfi-curl').textContent = curl;
-                    break;
-                    
-                case 'redirect':
-                    payload = document.getElementById('redirect-input').value;
-                    curl = `curl -X GET "${serverUrl}/vuln/open-redirect?url=${encodeURIComponent(payload)}" \\
-  -H "X-Real-IP: YOUR_IP" \\
-  -H "X-Vuln-Type: open-redirect" \\
-  -L`;
-                    document.getElementById('redirect-curl').textContent = curl;
-                    break;
-                    
-                case 'xxe':
-                    payload = document.getElementById('xxe-input').value;
-                    curl = `curl -X POST "${serverUrl}/vuln/xxe" \\
-  -H "Content-Type: application/xml" \\
-  -H "X-Real-IP: YOUR_IP" \\
-  -H "X-Vuln-Type: xxe" \\
-  -d '${payload.replace(/'/g, "'\\''")}'`;
-                    document.getElementById('xxe-curl').textContent = curl;
-                    break;
+        // === DÉTECTION AUTO DE L'IP ===
+        async function detectPublicIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                document.getElementById('realIp').value = data.ip;
+            } catch (error) {
+                console.log('Impossible de détecter l\'IP publique:', error);
             }
         }
 
-        function copyCurl(elementId) {
-            const text = document.getElementById(elementId).textContent;
-            const btn = event.target.closest('button');
-            navigator.clipboard.writeText(text).then(() => {
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-check mr-2"></i>Copié!';
-                btn.classList.remove('bg-gray-700');
-                btn.classList.add('bg-green-600');
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.classList.remove('bg-green-600');
-                    btn.classList.add('bg-gray-700');
-                }, 2000);
-            });
+        // Détecter l'IP au chargement
+        document.addEventListener('DOMContentLoaded', () => {
+            detectPublicIP();
+        });
+
+        // === UTILITAIRES ===
+        function getWafUrl() {
+            return document.getElementById('wafDomain').value || window.location.origin;
         }
 
-        // Générer toutes les commandes curl au chargement
-        document.addEventListener('DOMContentLoaded', () => {
-            const types = ['sqli', 'xss', 'path', 'cmd', 'ssrf', 'nosqli', 'lfi', 'redirect', 'xxe'];
-            types.forEach(type => generateCurl(type));
+        function getRealIp() {
+            return document.getElementById('realIp').value || '';
+        }
+
+        function buildHeaders(vulnType) {
+            const headers = {
+                'X-Vuln-Type': vulnType
+            };
             
-            // Régénérer quand l'input change
-            document.querySelectorAll('input, textarea').forEach(input => {
-                input.addEventListener('input', () => {
-                    const type = input.id.split('-')[0];
-                    if (types.includes(type)) {
-                        generateCurl(type);
-                    }
-                });
-            });
-        });
+            const realIp = getRealIp();
+            if (realIp) {
+                headers['X-Real-IP'] = realIp;
+            }
+            
+            return headers;
+        }
 
         function showLoading(elementId) {
             const element = document.getElementById(elementId);
@@ -593,24 +438,26 @@
 
         async function testSQLi() {
             const input = document.getElementById('sqli-input').value;
+            const wafUrl = getWafUrl();
             showLoading('sqli-result');
             try {
-                const response = await fetch(`/vuln/sqli?username=${encodeURIComponent(input)}`, {
-                    headers: { 'X-Vuln-Type': 'sqli' }
+                const response = await fetch(`${wafUrl}/vuln/sqli?username=${encodeURIComponent(input)}`, {
+                    headers: buildHeaders('sqli')
                 });
                 const data = await response.json();
                 showResult('sqli-result', data);
             } catch (error) {
-                showResult('sqli-result', { error: error.message }, true);
+                showResult('sqli-result', { error: error.message, wafUrl: wafUrl }, true);
             }
         }
 
         async function testXSS() {
             const input = document.getElementById('xss-input').value;
+            const wafUrl = getWafUrl();
             showLoading('xss-result');
             try {
-                const response = await fetch(`/vuln/xss?name=${encodeURIComponent(input)}`, {
-                    headers: { 'X-Vuln-Type': 'xss' }
+                const response = await fetch(`${wafUrl}/vuln/xss?name=${encodeURIComponent(input)}`, {
+                    headers: buildHeaders('xss')
                 });
                 const data = await response.text();
                 const vulnerable = data.includes(input) && !data.includes('&lt;') && !data.includes('&gt;');
@@ -620,113 +467,130 @@
                     input_reflected: vulnerable ? 'Oui - Code injecté non filtré' : 'Non - Code filtré ou encodé'
                 });
             } catch (error) {
-                showResult('xss-result', { error: error.message }, true);
+                showResult('xss-result', { error: error.message, wafUrl: wafUrl }, true);
             }
         }
 
         async function testPathTraversal() {
             const input = document.getElementById('path-input').value;
+            const wafUrl = getWafUrl();
             showLoading('path-result');
             try {
-                const response = await fetch(`/vuln/path-traversal?file=${encodeURIComponent(input)}`, {
-                    headers: { 'X-Vuln-Type': 'path-traversal' }
+                const response = await fetch(`${wafUrl}/vuln/path-traversal?file=${encodeURIComponent(input)}`, {
+                    headers: buildHeaders('path-traversal')
                 });
                 const data = await response.json();
                 showResult('path-result', data);
             } catch (error) {
-                showResult('path-result', { error: error.message }, true);
+                showResult('path-result', { error: error.message, wafUrl: wafUrl }, true);
             }
         }
 
         async function testCommandInjection() {
             const input = document.getElementById('cmd-input').value;
+            const wafUrl = getWafUrl();
             showLoading('cmd-result');
             try {
-                const response = await fetch(`/vuln/command-injection?host=${encodeURIComponent(input)}`, {
-                    headers: { 'X-Vuln-Type': 'command-injection' }
+                const response = await fetch(`${wafUrl}/vuln/command-injection?host=${encodeURIComponent(input)}`, {
+                    headers: buildHeaders('command-injection')
                 });
                 const data = await response.json();
                 showResult('cmd-result', data);
             } catch (error) {
-                showResult('cmd-result', { error: error.message }, true);
+                showResult('cmd-result', { error: error.message, wafUrl: wafUrl }, true);
             }
         }
 
         async function testSSRF() {
             const input = document.getElementById('ssrf-input').value;
+            const wafUrl = getWafUrl();
             showLoading('ssrf-result');
             try {
-                const response = await fetch(`/vuln/ssrf?url=${encodeURIComponent(input)}`, {
-                    headers: { 'X-Vuln-Type': 'ssrf' }
+                const response = await fetch(`${wafUrl}/vuln/ssrf?url=${encodeURIComponent(input)}`, {
+                    headers: buildHeaders('ssrf')
                 });
                 const data = await response.json();
                 showResult('ssrf-result', data);
             } catch (error) {
-                showResult('ssrf-result', { error: error.message }, true);
+                showResult('ssrf-result', { error: error.message, wafUrl: wafUrl }, true);
             }
         }
 
         async function testNoSQLi() {
             const input = document.getElementById('nosqli-input').value;
+            const wafUrl = getWafUrl();
             showLoading('nosqli-result');
             try {
-                const response = await fetch('/vuln/nosqli', {
+                const headers = buildHeaders('nosqli');
+                headers['Content-Type'] = 'application/json';
+                
+                const response = await fetch(`${wafUrl}/vuln/nosqli`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-Vuln-Type': 'nosqli'
-                    },
+                    headers: headers,
                     body: JSON.stringify({ username: input, password: input })
                 });
                 const data = await response.json();
                 showResult('nosqli-result', data);
             } catch (error) {
-                showResult('nosqli-result', { error: error.message }, true);
+                showResult('nosqli-result', { error: error.message, wafUrl: wafUrl }, true);
             }
         }
 
         async function testLFI() {
             const input = document.getElementById('lfi-input').value;
+            const wafUrl = getWafUrl();
             showLoading('lfi-result');
             try {
-                const response = await fetch(`/vuln/lfi?page=${encodeURIComponent(input)}`, {
-                    headers: { 'X-Vuln-Type': 'lfi' }
+                const response = await fetch(`${wafUrl}/vuln/lfi?page=${encodeURIComponent(input)}`, {
+                    headers: buildHeaders('lfi')
                 });
                 const data = await response.json();
                 showResult('lfi-result', data);
             } catch (error) {
-                showResult('lfi-result', { error: error.message }, true);
+                showResult('lfi-result', { error: error.message, wafUrl: wafUrl }, true);
             }
         }
 
         async function testOpenRedirect() {
             const input = document.getElementById('redirect-input').value;
-            showResult('redirect-result', { 
-                vulnerable: true,
-                message: 'Test de redirection - Endpoint vulnérable', 
-                redirect_url: `/vuln/open-redirect?url=${encodeURIComponent(input)}`,
-                target: input,
-                note: 'Cette URL redirigera vers la cible spécifiée sans validation',
-                recommendation: 'Implémenter une whitelist de domaines autorisés'
-            });
+            const wafUrl = getWafUrl();
+            showLoading('redirect-result');
+            try {
+                const response = await fetch(`${wafUrl}/vuln/open-redirect?url=${encodeURIComponent(input)}`, {
+                    headers: buildHeaders('open-redirect'),
+                    redirect: 'manual'
+                });
+                
+                showResult('redirect-result', { 
+                    vulnerable: true,
+                    status: response.status,
+                    location: response.headers.get('location'),
+                    message: 'Test de redirection - Endpoint vulnérable', 
+                    target: input,
+                    note: 'La redirection a été interceptée pour analyse'
+                });
+            } catch (error) {
+                showResult('redirect-result', { error: error.message, wafUrl: wafUrl }, true);
+            }
         }
 
         async function testXXE() {
             const input = document.getElementById('xxe-input').value;
+            const wafUrl = getWafUrl();
             showLoading('xxe-result');
             try {
-                const response = await fetch('/vuln/xxe', {
+                const headers = buildHeaders('xxe');
+                headers['Content-Type'] = 'application/xml';
+                
+                const response = await fetch(`${wafUrl}/vuln/xxe`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/xml',
-                        'X-Vuln-Type': 'xxe'
-                    },
+                    headers: headers,
                     body: input
                 });
                 const data = await response.json();
                 showResult('xxe-result', data);
             } catch (error) {
-                showResult('xxe-result', { error: error.message }, true);
+                showResult('xxe-result', { error: error.message, wafUrl: wafUrl }, true);
             }
         }
     </script>
