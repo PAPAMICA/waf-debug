@@ -19,10 +19,40 @@ const PORT = 80;
 const logsFile = path.join(__dirname, 'logs', 'requests.log');
 const statsFile = path.join(__dirname, 'data', 'stats.json');
 
-// Middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.text({ type: 'application/xml' }));
+// Middleware - capture raw body first
+app.use(bodyParser.raw({ type: '*/*', limit: '10mb' }));
+
+// Custom body parser that handles errors gracefully
+app.use((req, res, next) => {
+  if (req.body && Buffer.isBuffer(req.body)) {
+    const rawBody = req.body.toString('utf8');
+    req.rawBody = rawBody;
+    
+    const contentType = req.headers['content-type'] || '';
+    
+    if (contentType.includes('application/json')) {
+      try {
+        req.body = JSON.parse(rawBody);
+      } catch (e) {
+        req.body = { _raw: rawBody, _parseError: true };
+      }
+    } else if (contentType.includes('application/x-www-form-urlencoded')) {
+      try {
+        req.body = Object.fromEntries(new URLSearchParams(rawBody));
+      } catch (e) {
+        req.body = { _raw: rawBody };
+      }
+    } else if (contentType.includes('application/xml') || contentType.includes('text/xml')) {
+      req.body = rawBody;
+    } else {
+      req.body = { _raw: rawBody };
+    }
+  } else if (!req.body) {
+    req.body = {};
+  }
+  next();
+});
+
 app.use(cookieParser());
 app.use(express.static('public'));
 
