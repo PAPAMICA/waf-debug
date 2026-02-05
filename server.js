@@ -4,26 +4,66 @@ const WebSocket = require('ws');
 const cookieParser = require('cookie-parser');
 const fs = require('fs');
 const path = require('path');
-const geoip = require('geoip-lite');
+
+// Charger geoip-lite de manière optionnelle
+let geoip = null;
+try {
+  geoip = require('geoip-lite');
+  console.log('✅ geoip-lite loaded');
+} catch (e) {
+  console.log('⚠️ geoip-lite not available, geolocation disabled');
+}
+
+console.log('🚀 Starting WAF Debug Receiver...');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 // Configuration
-const PORT = 80;
-const logsFile = path.join(__dirname, 'logs', 'requests.log');
-const statsFile = path.join(__dirname, 'data', 'stats.json');
+const PORT = process.env.PORT || 80;
+const logsDir = path.join(__dirname, 'logs');
+const dataDir = path.join(__dirname, 'data');
+const logsFile = path.join(logsDir, 'requests.log');
+const statsFile = path.join(dataDir, 'stats.json');
 
-// Initialisation des fichiers
-if (!fs.existsSync('logs')) fs.mkdirSync('logs');
-if (!fs.existsSync('data')) fs.mkdirSync('data');
-if (!fs.existsSync(logsFile)) fs.writeFileSync(logsFile, '');
-if (!fs.existsSync(statsFile)) fs.writeFileSync(statsFile, JSON.stringify({ total: 0, byMethod: {}, byIp: {}, byCountry: {}, byPath: {} }));
+// Initialisation des répertoires et fichiers
+try {
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+    console.log('📁 Created logs directory');
+  }
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+    console.log('📁 Created data directory');
+  }
+  if (!fs.existsSync(logsFile)) {
+    fs.writeFileSync(logsFile, '');
+    console.log('📄 Created requests.log');
+  }
+  if (!fs.existsSync(statsFile)) {
+    fs.writeFileSync(statsFile, JSON.stringify({ total: 0, byMethod: {}, byIp: {}, byCountry: {}, byPath: {} }));
+    console.log('📄 Created stats.json');
+  }
+} catch (e) {
+  console.error('❌ Error initializing files:', e.message);
+}
 
 // Stockage en mémoire
 let requestLogs = [];
-let stats = JSON.parse(fs.readFileSync(statsFile, 'utf8'));
+let stats = { total: 0, byMethod: {}, byIp: {}, byCountry: {}, byPath: {} };
+
+// Charger les stats existantes
+try {
+  const statsData = fs.readFileSync(statsFile, 'utf8');
+  if (statsData && statsData.trim()) {
+    stats = JSON.parse(statsData);
+    console.log('📊 Loaded existing stats:', stats.total, 'requests');
+  }
+} catch (e) {
+  console.log('⚠️ Could not load stats, using defaults:', e.message);
+  stats = { total: 0, byMethod: {}, byIp: {}, byCountry: {}, byPath: {} };
+}
 
 // Initialiser les stats si nécessaire
 if (!stats.byMethod) stats.byMethod = {};
@@ -133,14 +173,18 @@ app.use((req, res, next) => {
   
   // Géolocalisation
   let geoData = null;
-  if (cleanIp && cleanIp !== '127.0.0.1' && cleanIp !== 'localhost' && cleanIp !== 'unknown') {
-    const geo = geoip.lookup(cleanIp);
-    if (geo) {
-      geoData = {
-        country: geo.country,
-        region: geo.region,
-        city: geo.city
-      };
+  if (geoip && cleanIp && cleanIp !== '127.0.0.1' && cleanIp !== 'localhost' && cleanIp !== 'unknown') {
+    try {
+      const geo = geoip.lookup(cleanIp);
+      if (geo) {
+        geoData = {
+          country: geo.country,
+          region: geo.region,
+          city: geo.city
+        };
+      }
+    } catch (e) {
+      // Ignore geoip errors
     }
   }
   
@@ -242,11 +286,28 @@ app.all('*', (req, res) => {
   });
 });
 
+// Gestion des erreurs globales
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err.message);
+  console.error(err.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection:', reason);
+});
+
 // Démarrage du serveur
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 WAF Debug Receiver started on port ${PORT}`);
+  console.log(`\n✅ WAF Debug Receiver started successfully!`);
   console.log(`📊 Dashboard: http://localhost:${PORT}`);
   console.log(`📋 Logs: http://localhost:${PORT}/logs`);
   console.log(`📈 Stats: http://localhost:${PORT}/stats`);
   console.log(`\n⏳ Waiting for requests from waf.secmy.app...`);
+});
+
+server.on('error', (err) => {
+  console.error('❌ Server error:', err.message);
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+  }
 });
