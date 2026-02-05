@@ -139,7 +139,7 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <a href="/logs" class="glass rounded-xl p-5 hover:bg-dark-700/50 transition-all group">
                 <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                     <i class="fas fa-scroll text-blue-400 text-xl"></i>
@@ -168,6 +168,76 @@
                 <h3 class="font-semibold text-white mb-1">Tests WAF</h3>
                 <p class="text-dark-400 text-sm">Testez votre WAF avec des payloads</p>
             </a>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+            <div class="glass rounded-xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-server text-blue-400"></i>
+                    </div>
+                    <div>
+                        <p id="statTotal" class="text-xl font-bold text-white font-mono">0</p>
+                        <p class="text-dark-400 text-xs">Total Requêtes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="glass rounded-xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-rose-500/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-bug text-rose-400"></i>
+                    </div>
+                    <div>
+                        <p id="statVulnTypes" class="text-xl font-bold text-white font-mono">0</p>
+                        <p class="text-dark-400 text-xs">Types Vuln.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="glass rounded-xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-network-wired text-violet-400"></i>
+                    </div>
+                    <div>
+                        <p id="statIps" class="text-xl font-bold text-white font-mono">0</p>
+                        <p class="text-dark-400 text-xs">IPs Uniques</p>
+                    </div>
+                </div>
+            </div>
+            <div class="glass rounded-xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-globe text-amber-400"></i>
+                    </div>
+                    <div>
+                        <p id="statCountries" class="text-xl font-bold text-white font-mono">0</p>
+                        <p class="text-dark-400 text-xs">Pays</p>
+                    </div>
+                </div>
+            </div>
+            <div class="glass rounded-xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-shield-halved text-emerald-400"></i>
+                    </div>
+                    <div>
+                        <p id="statSuspicious" class="text-xl font-bold text-rose-400 font-mono">0</p>
+                        <p class="text-dark-400 text-xs">Suspectes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="glass rounded-xl p-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-clock text-cyan-400"></i>
+                    </div>
+                    <div>
+                        <p id="statLastUpdate" class="text-xl font-bold text-white font-mono">--:--</p>
+                        <p class="text-dark-400 text-xs">Dernière req.</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Live Logs Section -->
@@ -297,12 +367,19 @@
                 return;
             }
 
+            // Update stats
+            updateStats(filteredLogs);
+
             container.innerHTML = filteredLogs.map(log => {
                 const timestamp = new Date(log.timestamp);
                 const isVulnTest = log.url.includes('/vuln/');
                 const isSuspicious = detectAttackFromLog(log) || isVulnTest;
                 const realIp = log.realIp || log.ip;
                 const geoInfo = log.geo;
+                const vulnType = log.headers['x-vuln-type'] || '';
+                const contentType = log.headers['content-type'] || '';
+                const referer = log.headers['referer'] || '';
+                const host = log.headers['host'] || '';
                 
                 return `
                     <div class="glass-dark rounded-xl overflow-hidden ${isSuspicious ? 'ring-1 ring-rose-500/50' : ''}">
@@ -324,14 +401,8 @@
                                 <div class="px-3 py-1.5 bg-dark-800 rounded-lg text-xs">
                                     <span class="text-dark-400">IP:</span>
                                     <span class="text-white font-mono ml-1">${realIp}</span>
-                                    ${geoInfo ? `<span class="ml-1">${getCountryFlag(geoInfo.country)}</span>` : ''}
+                                    ${geoInfo ? `<span class="ml-1" title="${geoInfo.country}${geoInfo.city ? ', ' + geoInfo.city : ''}">${getCountryFlag(geoInfo.country)}</span>` : ''}
                                 </div>
-                                ${geoInfo && geoInfo.country ? `
-                                    <div class="px-3 py-1.5 bg-dark-800 rounded-lg text-xs">
-                                        <span class="text-dark-400">Pays:</span>
-                                        <span class="text-white ml-1">${geoInfo.country}</span>
-                                    </div>
-                                ` : ''}
                                 ${Object.keys(log.query).length > 0 ? `
                                     <div class="px-3 py-1.5 bg-amber-500/10 rounded-lg text-xs">
                                         <span class="text-amber-400">Query:</span>
@@ -344,31 +415,150 @@
                                         <span class="text-emerald-300 ml-1">${Object.keys(log.body).length} champ(s)</span>
                                     </div>
                                 ` : ''}
+                                ${vulnType ? `
+                                    <div class="px-3 py-1.5 bg-rose-500/10 rounded-lg text-xs">
+                                        <span class="text-rose-400">Type:</span>
+                                        <span class="text-rose-300 ml-1">${vulnType}</span>
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
                         
                         <details class="group">
                             <summary class="px-4 py-2 bg-dark-900/50 cursor-pointer flex items-center gap-2 text-dark-400 text-sm hover:text-white transition-colors">
                                 <i class="fas fa-chevron-right chevron transition-transform text-xs"></i>
-                                <span>Détails</span>
+                                <span>Voir tous les détails</span>
                             </summary>
-                            <div class="p-4 bg-dark-900/50 space-y-3 text-sm">
-                                <div class="bg-dark-800 rounded-lg p-3">
-                                    <div class="text-dark-400 text-xs mb-1 font-medium">User-Agent</div>
-                                    <div class="text-dark-200 font-mono text-xs break-all">${log.headers['user-agent'] || 'N/A'}</div>
+                            <div class="p-4 bg-dark-900/50 space-y-3">
+                                <!-- Résumé rapide -->
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div class="bg-dark-800 rounded-lg p-3">
+                                        <div class="text-dark-500 text-xs mb-1">Méthode</div>
+                                        <div class="text-white font-mono text-sm font-medium">${log.method}</div>
+                                    </div>
+                                    <div class="bg-dark-800 rounded-lg p-3">
+                                        <div class="text-dark-500 text-xs mb-1">IP Source</div>
+                                        <div class="text-white font-mono text-sm">${realIp} ${geoInfo ? getCountryFlag(geoInfo.country) : ''}</div>
+                                    </div>
+                                    <div class="bg-dark-800 rounded-lg p-3">
+                                        <div class="text-dark-500 text-xs mb-1">Localisation</div>
+                                        <div class="text-white text-sm">${geoInfo ? (geoInfo.city ? geoInfo.city + ', ' : '') + geoInfo.country : 'Inconnue'}</div>
+                                    </div>
+                                    <div class="bg-dark-800 rounded-lg p-3">
+                                        <div class="text-dark-500 text-xs mb-1">Horodatage</div>
+                                        <div class="text-white font-mono text-sm">${timestamp.toLocaleString('fr-FR')}</div>
+                                    </div>
                                 </div>
+
+                                <!-- URL complète -->
+                                <div class="bg-dark-800 rounded-lg p-3">
+                                    <div class="text-accent-400 text-xs mb-2 font-medium flex items-center gap-2">
+                                        <i class="fas fa-link"></i> URL Complète
+                                    </div>
+                                    <code class="text-accent-200 text-xs break-all font-mono block">${log.url}</code>
+                                </div>
+
+                                <!-- Host & Referer -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="bg-dark-800 rounded-lg p-3">
+                                        <div class="text-violet-400 text-xs mb-2 font-medium flex items-center gap-2">
+                                            <i class="fas fa-server"></i> Host
+                                        </div>
+                                        <code class="text-violet-200 text-xs font-mono">${host || 'N/A'}</code>
+                                    </div>
+                                    <div class="bg-dark-800 rounded-lg p-3">
+                                        <div class="text-pink-400 text-xs mb-2 font-medium flex items-center gap-2">
+                                            <i class="fas fa-arrow-left"></i> Referer
+                                        </div>
+                                        <code class="text-pink-200 text-xs font-mono break-all">${referer || 'Direct / Aucun'}</code>
+                                    </div>
+                                </div>
+
+                                <!-- User-Agent avec parsing -->
+                                <div class="bg-dark-800 rounded-lg p-3">
+                                    <div class="text-cyan-400 text-xs mb-2 font-medium flex items-center gap-2">
+                                        <i class="fas fa-desktop"></i> User-Agent
+                                    </div>
+                                    <code class="text-cyan-200 text-xs break-all font-mono block">${log.headers['user-agent'] || 'N/A'}</code>
+                                    ${log.headers['user-agent'] ? `
+                                        <div class="mt-2 flex flex-wrap gap-2">
+                                            ${parseUserAgent(log.headers['user-agent'])}
+                                        </div>
+                                    ` : ''}
+                                </div>
+
                                 ${Object.keys(log.query).length > 0 ? `
                                     <div class="bg-dark-800 rounded-lg p-3">
-                                        <div class="text-amber-400 text-xs mb-2 font-medium">Query Parameters</div>
-                                        <pre class="text-amber-200/80 text-xs overflow-x-auto font-mono">${JSON.stringify(log.query, null, 2)}</pre>
+                                        <div class="text-amber-400 text-xs mb-2 font-medium flex items-center gap-2">
+                                            <i class="fas fa-question-circle"></i> Query Parameters (${Object.keys(log.query).length})
+                                        </div>
+                                        <div class="space-y-1">
+                                            ${Object.entries(log.query).map(([key, value]) => `
+                                                <div class="flex gap-2 text-xs py-1 border-b border-dark-700 last:border-0">
+                                                    <span class="text-amber-300 font-medium min-w-[100px]">${escapeHtml(key)}</span>
+                                                    <span class="text-amber-100 font-mono break-all">${escapeHtml(String(value))}</span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
                                     </div>
                                 ` : ''}
+
                                 ${log.body && Object.keys(log.body).length > 0 ? `
                                     <div class="bg-dark-800 rounded-lg p-3">
-                                        <div class="text-emerald-400 text-xs mb-2 font-medium">Request Body</div>
-                                        <pre class="text-emerald-200/80 text-xs overflow-x-auto font-mono">${JSON.stringify(log.body, null, 2)}</pre>
+                                        <div class="text-emerald-400 text-xs mb-2 font-medium flex items-center gap-2">
+                                            <i class="fas fa-file-code"></i> Request Body (${Object.keys(log.body).length} champ${Object.keys(log.body).length > 1 ? 's' : ''})
+                                            ${contentType ? `<span class="text-dark-500 font-normal">${contentType}</span>` : ''}
+                                        </div>
+                                        <pre class="text-emerald-200/80 text-xs overflow-x-auto font-mono bg-dark-900 p-2 rounded">${JSON.stringify(log.body, null, 2)}</pre>
                                     </div>
                                 ` : ''}
+
+                                ${Object.keys(log.cookies || {}).length > 0 ? `
+                                    <div class="bg-dark-800 rounded-lg p-3">
+                                        <div class="text-orange-400 text-xs mb-2 font-medium flex items-center gap-2">
+                                            <i class="fas fa-cookie-bite"></i> Cookies (${Object.keys(log.cookies).length})
+                                        </div>
+                                        <div class="space-y-1">
+                                            ${Object.entries(log.cookies).map(([key, value]) => `
+                                                <div class="flex gap-2 text-xs py-1 border-b border-dark-700 last:border-0">
+                                                    <span class="text-orange-300 font-medium min-w-[100px]">${escapeHtml(key)}</span>
+                                                    <span class="text-orange-100 font-mono break-all">${escapeHtml(String(value))}</span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+
+                                <!-- Headers importants -->
+                                <div class="bg-dark-800 rounded-lg p-3">
+                                    <div class="text-blue-400 text-xs mb-2 font-medium flex items-center gap-2">
+                                        <i class="fas fa-list"></i> Headers HTTP (${Object.keys(log.headers).length})
+                                    </div>
+                                    <div class="space-y-1 max-h-48 overflow-y-auto scrollbar-thin">
+                                        ${Object.entries(log.headers).filter(([key]) => !key.startsWith(':')).map(([key, value]) => `
+                                            <div class="flex gap-2 text-xs py-1 border-b border-dark-700 last:border-0">
+                                                <span class="text-blue-300 font-medium min-w-[140px]">${key}</span>
+                                                <span class="text-blue-100 font-mono break-all">${escapeHtml(String(value))}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+
+                                <!-- Analyse de sécurité -->
+                                <div class="bg-dark-800 rounded-lg p-3 ${isSuspicious ? 'ring-1 ring-rose-500/30' : ''}">
+                                    <div class="${isSuspicious ? 'text-rose-400' : 'text-emerald-400'} text-xs mb-2 font-medium flex items-center gap-2">
+                                        <i class="fas ${isSuspicious ? 'fa-exclamation-triangle' : 'fa-shield-check'}"></i> Analyse de Sécurité
+                                    </div>
+                                    <div class="flex flex-wrap gap-2">
+                                        ${isSuspicious ? `
+                                            <span class="px-2 py-1 bg-rose-500/20 text-rose-300 rounded text-xs">Potentiellement malveillante</span>
+                                            ${isVulnTest ? '<span class="px-2 py-1 bg-violet-500/20 text-violet-300 rounded text-xs">Test de vulnérabilité</span>' : ''}
+                                            ${detectAttackType(log)}
+                                        ` : `
+                                            <span class="px-2 py-1 bg-emerald-500/20 text-emerald-300 rounded text-xs">Aucune menace détectée</span>
+                                        `}
+                                    </div>
+                                </div>
                             </div>
                         </details>
                     </div>
@@ -394,8 +584,84 @@
             return String.fromCodePoint(...codePoints);
         }
 
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function parseUserAgent(ua) {
+            const badges = [];
+            
+            // OS Detection
+            if (ua.includes('Windows')) badges.push('<span class="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded text-xs">Windows</span>');
+            else if (ua.includes('Mac OS')) badges.push('<span class="px-2 py-0.5 bg-gray-500/20 text-gray-300 rounded text-xs">macOS</span>');
+            else if (ua.includes('Linux')) badges.push('<span class="px-2 py-0.5 bg-orange-500/20 text-orange-300 rounded text-xs">Linux</span>');
+            else if (ua.includes('Android')) badges.push('<span class="px-2 py-0.5 bg-green-500/20 text-green-300 rounded text-xs">Android</span>');
+            else if (ua.includes('iPhone') || ua.includes('iPad')) badges.push('<span class="px-2 py-0.5 bg-gray-500/20 text-gray-300 rounded text-xs">iOS</span>');
+            
+            // Browser Detection
+            if (ua.includes('Firefox')) badges.push('<span class="px-2 py-0.5 bg-orange-500/20 text-orange-300 rounded text-xs">Firefox</span>');
+            else if (ua.includes('Chrome') && !ua.includes('Edg')) badges.push('<span class="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded text-xs">Chrome</span>');
+            else if (ua.includes('Safari') && !ua.includes('Chrome')) badges.push('<span class="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded text-xs">Safari</span>');
+            else if (ua.includes('Edg')) badges.push('<span class="px-2 py-0.5 bg-cyan-500/20 text-cyan-300 rounded text-xs">Edge</span>');
+            
+            // Bot/Tool Detection
+            if (ua.includes('curl')) badges.push('<span class="px-2 py-0.5 bg-rose-500/20 text-rose-300 rounded text-xs">curl</span>');
+            if (ua.includes('Postman')) badges.push('<span class="px-2 py-0.5 bg-orange-500/20 text-orange-300 rounded text-xs">Postman</span>');
+            if (ua.includes('bot') || ua.includes('Bot')) badges.push('<span class="px-2 py-0.5 bg-violet-500/20 text-violet-300 rounded text-xs">Bot</span>');
+            if (ua.includes('python')) badges.push('<span class="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded text-xs">Python</span>');
+            
+            return badges.join('') || '<span class="px-2 py-0.5 bg-dark-600 text-dark-300 rounded text-xs">Inconnu</span>';
+        }
+
+        function detectAttackType(log) {
+            const testString = (log.url || '') + JSON.stringify(log.query || {}) + JSON.stringify(log.body || {});
+            const attacks = [];
+            
+            if (/(\.\.[\/\\]){2,}/.test(testString)) attacks.push('<span class="px-2 py-1 bg-amber-500/20 text-amber-300 rounded text-xs">Path Traversal</span>');
+            if (/<script[^>]*>/i.test(testString) || /javascript:/i.test(testString)) attacks.push('<span class="px-2 py-1 bg-pink-500/20 text-pink-300 rounded text-xs">XSS</span>');
+            if (/(union\s+select|or\s+1\s*=\s*1|'\s+or\s+')/i.test(testString)) attacks.push('<span class="px-2 py-1 bg-red-500/20 text-red-300 rounded text-xs">SQL Injection</span>');
+            if (/\{\s*['"]\$ne['"]\s*:/.test(testString)) attacks.push('<span class="px-2 py-1 bg-orange-500/20 text-orange-300 rounded text-xs">NoSQL Injection</span>');
+            if (/;\s*(cat|ls|wget|curl|bash|sh)\s+/i.test(testString) || /\|\s*(cat|ls|wget|curl|bash)\s+/i.test(testString)) attacks.push('<span class="px-2 py-1 bg-red-500/20 text-red-300 rounded text-xs">Command Injection</span>');
+            if (/<!DOCTYPE[^>]+ENTITY/i.test(testString)) attacks.push('<span class="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs">XXE</span>');
+            if (/\{\{.*\}\}/.test(testString)) attacks.push('<span class="px-2 py-1 bg-cyan-500/20 text-cyan-300 rounded text-xs">SSTI</span>');
+            if (/(file:\/\/\/|php:\/\/filter)/i.test(testString)) attacks.push('<span class="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-xs">LFI</span>');
+            
+            return attacks.join('');
+        }
+
+        function updateStats(logsData) {
+            fetch('/api/stats')
+                .then(res => res.json())
+                .then(stats => {
+                    document.getElementById('statTotal').textContent = stats.total.toLocaleString();
+                    document.getElementById('statVulnTypes').textContent = Object.keys(stats.byVuln || {}).filter(k => k !== 'unknown').length;
+                    document.getElementById('statIps').textContent = Object.keys(stats.byIp || {}).length;
+                    document.getElementById('statCountries').textContent = Object.keys(stats.byCountry || {}).length;
+                    
+                    // Count suspicious
+                    const suspiciousCount = logsData.filter(log => detectAttackFromLog(log) || log.url.includes('/vuln/')).length;
+                    document.getElementById('statSuspicious').textContent = suspiciousCount;
+                    
+                    // Last update time
+                    if (logsData.length > 0) {
+                        const lastTime = new Date(logsData[0].timestamp);
+                        document.getElementById('statLastUpdate').textContent = lastTime.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+                    }
+                });
+        }
+
         loadInitialLogs();
         connectWebSocket();
+        
+        // Initial stats load
+        fetch('/api/stats').then(res => res.json()).then(stats => {
+            document.getElementById('statTotal').textContent = stats.total.toLocaleString();
+            document.getElementById('statVulnTypes').textContent = Object.keys(stats.byVuln || {}).filter(k => k !== 'unknown').length;
+            document.getElementById('statIps').textContent = Object.keys(stats.byIp || {}).length;
+            document.getElementById('statCountries').textContent = Object.keys(stats.byCountry || {}).length;
+        });
     </script>
 </body>
 </html>

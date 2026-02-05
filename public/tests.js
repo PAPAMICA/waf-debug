@@ -360,27 +360,68 @@ let isRunning = false;
 let shouldStop = false;
 
 // Initialisation
-document.addEventListener('DOMContentLoaded', () => {
-    // URL par défaut
-    document.getElementById('targetUrl').value = window.location.origin;
+function init() {
+    // URL par défaut - utilise l'URL complète du site actuel
+    const targetUrlInput = document.getElementById('targetUrl');
+    if (targetUrlInput) {
+        targetUrlInput.value = window.location.origin;
+        targetUrlInput.placeholder = window.location.origin;
+    }
     
     // Générer les catégories
     generateCategories();
-});
+    
+    console.log('WAF Tests initialized with', Object.keys(PAYLOADS).length, 'categories');
+}
+
+// Exécuter l'init quand le DOM est prêt
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    // DOM déjà chargé
+    init();
+}
 
 function generateCategories() {
     const categoriesDiv = document.getElementById('categories');
+    if (!categoriesDiv) {
+        console.error('Element #categories not found');
+        return;
+    }
+    
     categoriesDiv.innerHTML = '';
     
-    Object.keys(PAYLOADS).forEach(category => {
+    const categories = Object.keys(PAYLOADS);
+    console.log('Generating', categories.length, 'categories');
+    
+    categories.forEach(category => {
         const payloadCount = PAYLOADS[category].length;
         const label = document.createElement('label');
-        label.className = 'flex items-center gap-2 px-3 py-2 bg-dark-800 rounded-lg border border-dark-700 cursor-pointer hover:border-rose-500 transition-colors';
-        label.innerHTML = `
-            <input type="checkbox" class="category-checkbox accent-rose-500" value="${category}" checked>
-            <span class="text-white text-sm">${category}</span>
-            <span class="text-dark-500 text-xs">(${payloadCount})</span>
-        `;
+        label.className = 'flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors';
+        label.style.cssText = 'background: rgba(30, 41, 59, 0.8); border-color: rgba(51, 65, 85, 1);';
+        label.onmouseenter = () => label.style.borderColor = 'rgba(244, 63, 94, 0.8)';
+        label.onmouseleave = () => label.style.borderColor = 'rgba(51, 65, 85, 1)';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'category-checkbox';
+        checkbox.value = category;
+        checkbox.checked = true;
+        checkbox.style.accentColor = '#f43f5e';
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'text-sm';
+        nameSpan.style.color = '#fff';
+        nameSpan.textContent = category;
+        
+        const countSpan = document.createElement('span');
+        countSpan.className = 'text-xs';
+        countSpan.style.color = '#64748b';
+        countSpan.textContent = `(${payloadCount})`;
+        
+        label.appendChild(checkbox);
+        label.appendChild(nameSpan);
+        label.appendChild(countSpan);
         categoriesDiv.appendChild(label);
     });
 }
