@@ -13,7 +13,18 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
                     colors: {
-                        dark: { 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a', 950: '#020617' },
+                        dark: { 
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8', 
+                            500: '#64748b', 
+                            600: '#475569', 
+                            700: '#334155', 
+                            800: '#1e293b', 
+                            900: '#0f172a', 
+                            950: '#020617' 
+                        },
                         accent: { 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7' }
                     }
                 }
@@ -27,7 +38,7 @@
         .glass-dark { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
     </style>
 </head>
-<body class="bg-dark-950 min-h-screen text-dark-100">
+<body class="bg-dark-950 min-h-screen text-slate-100">
     <!-- Navigation -->
     <nav class="glass-dark sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,17 +49,17 @@
                     </div>
                     <div>
                         <span class="text-lg font-semibold text-white">WAF Debug</span>
-                        <span class="hidden sm:inline text-dark-400 text-sm ml-2">Request Receiver</span>
+                        <span class="hidden sm:inline text-slate-400 text-sm ml-2">Request Receiver</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
                     <a href="/" class="px-4 py-2 rounded-lg text-sm font-medium bg-accent-600 text-white">
                         <i class="fas fa-home mr-2"></i>Dashboard
                     </a>
-                    <a href="/logs" class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-800 transition-all">
+                    <a href="/logs" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 transition-all">
                         <i class="fas fa-scroll mr-2"></i>Logs
                     </a>
-                    <a href="/stats" class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-800 transition-all">
+                    <a href="/stats" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 transition-all">
                         <i class="fas fa-chart-bar mr-2"></i>Stats
                     </a>
                 </div>
@@ -63,7 +74,7 @@
                 <i class="fas fa-satellite-dish text-white text-3xl"></i>
             </div>
             <h1 class="text-3xl font-bold text-white mb-2">WAF Debug Receiver</h1>
-            <p class="text-dark-400">Récepteur de requêtes pour tests WAF</p>
+            <p class="text-slate-400">Récepteur de requêtes pour tests WAF</p>
         </div>
 
         <!-- Instructions -->
@@ -74,7 +85,7 @@
                 </div>
                 <div class="flex-1">
                     <h2 class="text-xl font-semibold text-white mb-3">Comment utiliser</h2>
-                    <ol class="space-y-3 text-dark-300">
+                    <ol class="space-y-3 text-slate-300">
                         <li class="flex items-start gap-3">
                             <span class="w-6 h-6 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
                             <span>Allez sur <a href="https://waf.secmy.app/" target="_blank" class="text-accent-400 hover:underline font-medium">waf.secmy.app</a></span>
@@ -103,28 +114,28 @@
                     <i class="fas fa-inbox text-blue-400 text-xl"></i>
                 </div>
                 <p id="statTotal" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-dark-400 text-sm mt-1">Requêtes reçues</p>
+                <p class="text-slate-400 text-sm mt-1">Requêtes reçues</p>
             </div>
             <div class="glass rounded-xl p-5 text-center">
                 <div class="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-network-wired text-violet-400 text-xl"></i>
                 </div>
                 <p id="statIps" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-dark-400 text-sm mt-1">IPs uniques</p>
+                <p class="text-slate-400 text-sm mt-1">IPs uniques</p>
             </div>
             <div class="glass rounded-xl p-5 text-center">
                 <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-globe text-amber-400 text-xl"></i>
                 </div>
                 <p id="statCountries" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-dark-400 text-sm mt-1">Pays</p>
+                <p class="text-slate-400 text-sm mt-1">Pays</p>
             </div>
             <div class="glass rounded-xl p-5 text-center">
                 <div class="w-12 h-12 rounded-xl bg-rose-500/20 flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-route text-rose-400 text-xl"></i>
                 </div>
                 <p id="statPaths" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-dark-400 text-sm mt-1">Chemins testés</p>
+                <p class="text-slate-400 text-sm mt-1">Chemins testés</p>
             </div>
         </div>
 
@@ -137,7 +148,7 @@
                     </div>
                     <div>
                         <h3 class="font-semibold text-white">Voir les Logs</h3>
-                        <p class="text-dark-400 text-sm">Détails de chaque requête</p>
+                        <p class="text-slate-400 text-sm">Détails de chaque requête</p>
                     </div>
                 </div>
             </a>
@@ -148,7 +159,7 @@
                     </div>
                     <div>
                         <h3 class="font-semibold text-white">Statistiques</h3>
-                        <p class="text-dark-400 text-sm">Analyses détaillées</p>
+                        <p class="text-slate-400 text-sm">Analyses détaillées</p>
                     </div>
                 </div>
             </a>
@@ -159,7 +170,7 @@
                     </div>
                     <div>
                         <h3 class="font-semibold text-white">Effacer les Logs</h3>
-                        <p class="text-dark-400 text-sm">Réinitialiser les données</p>
+                        <p class="text-slate-400 text-sm">Réinitialiser les données</p>
                     </div>
                 </div>
             </button>
@@ -174,19 +185,19 @@
                     </div>
                     <div>
                         <h2 class="font-semibold text-white">Activité en Direct</h2>
-                        <p class="text-dark-400 text-sm">Dernières requêtes reçues</p>
+                        <p class="text-slate-400 text-sm">Dernières requêtes reçues</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div id="liveIndicator" class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <span class="text-emerald-400 text-sm font-medium">Live</span>
+                    <div id="liveIndicator" class="w-2 h-2 bg-slate-500 rounded-full"></div>
+                    <span id="liveStatus" class="text-slate-400 text-sm font-medium">Connexion...</span>
                 </div>
             </div>
             <div id="liveActivity" class="p-4 space-y-2 max-h-[400px] overflow-y-auto">
-                <div class="text-center py-8 text-dark-400">
+                <div class="text-center py-8 text-slate-400">
                     <i class="fas fa-satellite-dish text-4xl mb-3 opacity-50"></i>
                     <p>En attente de requêtes...</p>
-                    <p class="text-sm text-dark-500 mt-1">Lancez les tests depuis waf.secmy.app</p>
+                    <p class="text-sm text-slate-500 mt-1">Lancez les tests depuis waf.secmy.app</p>
                 </div>
             </div>
         </div>
@@ -194,11 +205,11 @@
 
     <footer class="border-t border-dark-800 mt-12">
         <div class="max-w-7xl mx-auto px-4 py-6 flex items-center justify-between">
-            <div class="flex items-center gap-2 text-dark-400 text-sm">
+            <div class="flex items-center gap-2 text-slate-400 text-sm">
                 <i class="fas fa-satellite-dish text-accent-500"></i>
                 <span>WAF Debug Receiver</span>
             </div>
-            <a href="https://waf.secmy.app/" target="_blank" class="text-dark-500 text-sm hover:text-accent-400 transition-colors">
+            <a href="https://waf.secmy.app/" target="_blank" class="text-slate-500 text-sm hover:text-accent-400 transition-colors">
                 Tests via waf.secmy.app <i class="fas fa-external-link ml-1"></i>
             </a>
         </div>
@@ -208,36 +219,86 @@
         // Set server URL
         document.getElementById('serverUrl').textContent = window.location.origin;
         
-        let ws;
         let recentLogs = [];
+        let wsConnected = false;
+        let pollingInterval = null;
 
+        // Essayer WebSocket, sinon fallback vers polling
         function connectWebSocket() {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            ws = new WebSocket(`${protocol}//${window.location.host}`);
+            try {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const ws = new WebSocket(`${protocol}//${window.location.host}`);
+                
+                ws.onopen = () => {
+                    wsConnected = true;
+                    document.getElementById('liveIndicator').className = 'w-2 h-2 bg-emerald-500 rounded-full animate-pulse';
+                    document.getElementById('liveStatus').className = 'text-emerald-400 text-sm font-medium';
+                    document.getElementById('liveStatus').textContent = 'Live';
+                    // Arrêter le polling si actif
+                    if (pollingInterval) {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                    }
+                };
+                
+                ws.onmessage = (event) => {
+                    try {
+                        const log = JSON.parse(event.data);
+                        recentLogs.unshift(log);
+                        if (recentLogs.length > 20) recentLogs.pop();
+                        updateLiveActivity();
+                        loadStats();
+                    } catch (e) {
+                        console.error('Parse error:', e);
+                    }
+                };
+                
+                ws.onerror = () => {
+                    console.log('WebSocket error, using polling fallback');
+                    startPolling();
+                };
+                
+                ws.onclose = () => {
+                    wsConnected = false;
+                    document.getElementById('liveIndicator').className = 'w-2 h-2 bg-amber-500 rounded-full animate-pulse';
+                    document.getElementById('liveStatus').className = 'text-amber-400 text-sm font-medium';
+                    document.getElementById('liveStatus').textContent = 'Polling';
+                    startPolling();
+                    // Réessayer WebSocket après un délai
+                    setTimeout(connectWebSocket, 10000);
+                };
+            } catch (e) {
+                console.error('WebSocket not supported, using polling');
+                startPolling();
+            }
+        }
+
+        function startPolling() {
+            if (pollingInterval) return;
+            document.getElementById('liveIndicator').className = 'w-2 h-2 bg-amber-500 rounded-full animate-pulse';
+            document.getElementById('liveStatus').className = 'text-amber-400 text-sm font-medium';
+            document.getElementById('liveStatus').textContent = 'Polling';
             
-            ws.onopen = () => {
-                document.getElementById('liveIndicator').classList.add('animate-pulse');
-            };
-            
-            ws.onmessage = (event) => {
-                const log = JSON.parse(event.data);
-                recentLogs.unshift(log);
-                if (recentLogs.length > 20) recentLogs.pop();
-                updateLiveActivity();
-                loadStats();
-            };
-            
-            ws.onclose = () => {
-                document.getElementById('liveIndicator').classList.remove('animate-pulse');
-                setTimeout(connectWebSocket, 3000);
-            };
+            pollingInterval = setInterval(() => {
+                fetch('/api/logs?limit=20')
+                    .then(res => res.json())
+                    .then(data => {
+                        // Vérifier s'il y a de nouveaux logs
+                        if (data.length > 0 && (!recentLogs.length || data[0].id !== recentLogs[0]?.id)) {
+                            recentLogs = data;
+                            updateLiveActivity();
+                            loadStats();
+                        }
+                    })
+                    .catch(e => console.error('Polling error:', e));
+            }, 2000);
         }
 
         function updateLiveActivity() {
             const container = document.getElementById('liveActivity');
             if (recentLogs.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center py-8 text-dark-400">
+                    <div class="text-center py-8 text-slate-400">
                         <i class="fas fa-satellite-dish text-4xl mb-3 opacity-50"></i>
                         <p>En attente de requêtes...</p>
                     </div>
@@ -252,16 +313,18 @@
                     'GET': 'bg-blue-500/20 text-blue-400',
                     'POST': 'bg-emerald-500/20 text-emerald-400',
                     'PUT': 'bg-amber-500/20 text-amber-400',
-                    'DELETE': 'bg-rose-500/20 text-rose-400'
+                    'DELETE': 'bg-rose-500/20 text-rose-400',
+                    'PATCH': 'bg-violet-500/20 text-violet-400',
+                    'OPTIONS': 'bg-slate-600/20 text-slate-400'
                 };
-                const methodColor = methodColors[log.method] || 'bg-dark-600 text-dark-300';
+                const methodColor = methodColors[log.method] || 'bg-slate-600/20 text-slate-400';
                 
                 return `
                     <div class="flex items-center gap-3 p-3 bg-dark-800/50 rounded-lg ${attacks.length > 0 ? 'ring-1 ring-rose-500/30' : ''}">
                         <span class="px-2 py-1 rounded ${methodColor} font-mono text-xs font-medium">${log.method}</span>
                         <span class="text-accent-300 font-mono text-sm truncate flex-1" title="${log.url}">${log.url}</span>
                         ${attacks.length > 0 ? `<span class="px-2 py-1 bg-rose-500/20 text-rose-400 rounded text-xs">${attacks[0]}</span>` : ''}
-                        <span class="text-dark-500 text-xs font-mono">${time}</span>
+                        <span class="text-slate-500 text-xs font-mono">${time}</span>
                     </div>
                 `;
             }).join('');
@@ -275,17 +338,29 @@
                     document.getElementById('statIps').textContent = Object.keys(stats.byIp || {}).length;
                     document.getElementById('statCountries').textContent = Object.keys(stats.byCountry || {}).length;
                     document.getElementById('statPaths').textContent = Object.keys(stats.byPath || {}).length;
-                });
+                })
+                .catch(e => console.error('Stats error:', e));
         }
 
         function clearLogs() {
             if (confirm('Voulez-vous vraiment effacer tous les logs ?')) {
-                fetch('/api/clear-logs', { method: 'POST' })
-                    .then(() => {
+                fetch('/api/clear-logs', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
                         recentLogs = [];
                         updateLiveActivity();
                         loadStats();
-                    });
+                        alert('Logs effacés avec succès !');
+                    }
+                })
+                .catch(e => {
+                    console.error('Clear logs error:', e);
+                    alert('Erreur lors de la suppression des logs');
+                });
             }
         }
 
@@ -295,7 +370,8 @@
             .then(data => {
                 recentLogs = data;
                 updateLiveActivity();
-            });
+            })
+            .catch(e => console.error('Initial load error:', e));
 
         loadStats();
         connectWebSocket();

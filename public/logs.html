@@ -13,7 +13,18 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
                     colors: {
-                        dark: { 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a', 950: '#020617' },
+                        dark: { 
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8', 
+                            500: '#64748b', 
+                            600: '#475569', 
+                            700: '#334155', 
+                            800: '#1e293b', 
+                            900: '#0f172a', 
+                            950: '#020617' 
+                        },
                         accent: { 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7' }
                     }
                 }
@@ -25,9 +36,10 @@
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .glass { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .glass-dark { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        details[open] summary i.fa-chevron-right { transform: rotate(90deg); }
     </style>
 </head>
-<body class="bg-dark-950 min-h-screen text-dark-100">
+<body class="bg-dark-950 min-h-screen text-slate-100">
     <!-- Navigation -->
     <nav class="glass-dark sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,17 +50,17 @@
                     </div>
                     <div>
                         <span class="text-lg font-semibold text-white">WAF Debug</span>
-                        <span class="hidden sm:inline text-dark-400 text-sm ml-2">Request Receiver</span>
+                        <span class="hidden sm:inline text-slate-400 text-sm ml-2">Request Receiver</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
-                    <a href="/" class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-800 transition-all">
+                    <a href="/" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 transition-all">
                         <i class="fas fa-home mr-2"></i>Dashboard
                     </a>
                     <a href="/logs" class="px-4 py-2 rounded-lg text-sm font-medium bg-accent-600 text-white">
                         <i class="fas fa-scroll mr-2"></i>Logs
                     </a>
-                    <a href="/stats" class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-800 transition-all">
+                    <a href="/stats" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 transition-all">
                         <i class="fas fa-chart-bar mr-2"></i>Stats
                     </a>
                 </div>
@@ -66,19 +78,19 @@
                     </div>
                     <div>
                         <h1 class="font-semibold text-white">Logs des Requêtes</h1>
-                        <p class="text-dark-400 text-sm"><span id="logCount">0</span> requêtes affichées</p>
+                        <p class="text-slate-400 text-sm"><span id="logCount">0</span> requêtes affichées</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div id="liveIndicator" class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <span class="text-emerald-400 text-sm font-medium">Live</span>
+                    <div id="liveIndicator" class="w-2 h-2 bg-slate-500 rounded-full"></div>
+                    <span id="liveStatus" class="text-slate-400 text-sm font-medium">Connexion...</span>
                 </div>
             </div>
             
             <!-- Filters -->
             <div class="flex flex-wrap gap-3">
                 <input type="text" id="searchFilter" placeholder="Rechercher dans l'URL ou le body..." 
-                    class="flex-1 min-w-[200px] bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
+                    class="flex-1 min-w-[200px] bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm placeholder-slate-500">
                 
                 <select id="methodFilter" class="bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
                     <option value="">Toutes méthodes</option>
@@ -118,7 +130,7 @@
 
         <!-- Logs List -->
         <div id="logsContainer" class="space-y-3">
-            <div class="text-center py-12 text-dark-400">
+            <div class="text-center py-12 text-slate-400">
                 <i class="fas fa-satellite-dish text-4xl mb-3 opacity-50"></i>
                 <p>Chargement des logs...</p>
             </div>
@@ -127,7 +139,7 @@
 
     <script>
         let logs = [];
-        let ws;
+        let pollingInterval = null;
 
         const methodColors = {
             'GET': 'bg-blue-500/20 text-blue-400',
@@ -135,7 +147,7 @@
             'PUT': 'bg-amber-500/20 text-amber-400',
             'DELETE': 'bg-rose-500/20 text-rose-400',
             'PATCH': 'bg-violet-500/20 text-violet-400',
-            'OPTIONS': 'bg-dark-600 text-dark-300'
+            'OPTIONS': 'bg-slate-600/20 text-slate-400'
         };
 
         function escapeHtml(text) {
@@ -160,7 +172,7 @@
         function renderLog(log) {
             const attacks = log.detectedAttacks || [];
             const hasAttacks = attacks.length > 0;
-            const methodColor = methodColors[log.method] || 'bg-dark-600 text-dark-300';
+            const methodColor = methodColors[log.method] || 'bg-slate-600/20 text-slate-400';
             const flag = log.geo?.country ? getCountryFlag(log.geo.country) : '';
             
             let bodyContent = '';
@@ -189,20 +201,20 @@
                             </div>
                             <div class="flex items-center gap-2 flex-shrink-0">
                                 ${hasAttacks ? `<span class="px-2 py-1 bg-rose-500/20 text-rose-400 rounded-lg text-xs font-medium"><i class="fas fa-shield-exclamation mr-1"></i>${attacks[0]}</span>` : ''}
-                                <span class="text-dark-500 text-xs font-mono">${formatTimestamp(log.timestamp)}</span>
+                                <span class="text-slate-500 text-xs font-mono">${formatTimestamp(log.timestamp)}</span>
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-2 text-sm">
                             ${log.ip ? `
                                 <div class="px-3 py-1.5 bg-dark-800/50 rounded-lg flex items-center gap-2">
-                                    ${flag ? `<span>${flag}</span>` : '<i class="fas fa-network-wired text-dark-500"></i>'}
-                                    <span class="text-dark-300 font-mono">${log.ip}</span>
+                                    ${flag ? `<span>${flag}</span>` : '<i class="fas fa-network-wired text-slate-500"></i>'}
+                                    <span class="text-slate-300 font-mono">${log.ip}</span>
                                 </div>
                             ` : ''}
                             ${log.headers?.['user-agent'] ? `
                                 <div class="px-3 py-1.5 bg-dark-800/50 rounded-lg flex items-center gap-2 max-w-md">
-                                    <i class="fas fa-browser text-dark-500"></i>
-                                    <span class="text-dark-400 truncate text-xs">${escapeHtml(log.headers['user-agent'].substring(0, 60))}...</span>
+                                    <i class="fas fa-browser text-slate-500"></i>
+                                    <span class="text-slate-400 truncate text-xs">${escapeHtml(log.headers['user-agent'].substring(0, 60))}...</span>
                                 </div>
                             ` : ''}
                         </div>
@@ -215,8 +227,8 @@
                         
                         ${queryContent ? `
                             <details class="mt-3">
-                                <summary class="cursor-pointer text-dark-400 text-sm hover:text-dark-300 flex items-center gap-2">
-                                    <i class="fas fa-chevron-right text-xs transform transition-transform"></i>
+                                <summary class="cursor-pointer text-slate-400 text-sm hover:text-slate-300 flex items-center gap-2">
+                                    <i class="fas fa-chevron-right text-xs transition-transform"></i>
                                     <span>Query Parameters</span>
                                 </summary>
                                 <pre class="mt-2 bg-dark-900 rounded-lg p-3 text-xs font-mono text-accent-300 overflow-x-auto">${escapeHtml(queryContent)}</pre>
@@ -225,8 +237,8 @@
                         
                         ${bodyContent ? `
                             <details class="mt-3">
-                                <summary class="cursor-pointer text-dark-400 text-sm hover:text-dark-300 flex items-center gap-2">
-                                    <i class="fas fa-chevron-right text-xs transform transition-transform"></i>
+                                <summary class="cursor-pointer text-slate-400 text-sm hover:text-slate-300 flex items-center gap-2">
+                                    <i class="fas fa-chevron-right text-xs transition-transform"></i>
                                     <span>Request Body</span>
                                 </summary>
                                 <pre class="mt-2 bg-dark-900 rounded-lg p-3 text-xs font-mono text-emerald-300 overflow-x-auto max-h-64 overflow-y-auto">${escapeHtml(bodyContent.substring(0, 2000))}${bodyContent.length > 2000 ? '\n... (truncated)' : ''}</pre>
@@ -234,8 +246,8 @@
                         ` : ''}
                         
                         <details class="mt-3">
-                            <summary class="cursor-pointer text-dark-400 text-sm hover:text-dark-300 flex items-center gap-2">
-                                <i class="fas fa-chevron-right text-xs transform transition-transform"></i>
+                            <summary class="cursor-pointer text-slate-400 text-sm hover:text-slate-300 flex items-center gap-2">
+                                <i class="fas fa-chevron-right text-xs transition-transform"></i>
                                 <span>Headers</span>
                             </summary>
                             <pre class="mt-2 bg-dark-900 rounded-lg p-3 text-xs font-mono text-violet-300 overflow-x-auto max-h-64 overflow-y-auto">${escapeHtml(JSON.stringify(log.headers, null, 2))}</pre>
@@ -267,10 +279,10 @@
             const container = document.getElementById('logsContainer');
             if (filtered.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center py-12 text-dark-400">
+                    <div class="text-center py-12 text-slate-400">
                         <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
                         <p>Aucune requête trouvée</p>
-                        <p class="text-sm text-dark-500 mt-1">Modifiez vos filtres ou lancez des tests depuis waf.secmy.app</p>
+                        <p class="text-sm text-slate-500 mt-1">Modifiez vos filtres ou lancez des tests depuis waf.secmy.app</p>
                     </div>
                 `;
             } else {
@@ -284,37 +296,89 @@
                 .then(data => {
                     logs = data;
                     updateDisplay();
-                });
+                })
+                .catch(e => console.error('Load logs error:', e));
         }
 
         function connectWebSocket() {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            ws = new WebSocket(`${protocol}//${window.location.host}`);
+            try {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const ws = new WebSocket(`${protocol}//${window.location.host}`);
+                
+                ws.onopen = () => {
+                    document.getElementById('liveIndicator').className = 'w-2 h-2 bg-emerald-500 rounded-full animate-pulse';
+                    document.getElementById('liveStatus').className = 'text-emerald-400 text-sm font-medium';
+                    document.getElementById('liveStatus').textContent = 'Live';
+                    if (pollingInterval) {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                    }
+                };
+                
+                ws.onmessage = (event) => {
+                    try {
+                        const log = JSON.parse(event.data);
+                        logs.unshift(log);
+                        if (logs.length > 1000) logs = logs.slice(0, 1000);
+                        updateDisplay();
+                    } catch (e) {
+                        console.error('Parse error:', e);
+                    }
+                };
+                
+                ws.onerror = () => {
+                    startPolling();
+                };
+                
+                ws.onclose = () => {
+                    document.getElementById('liveIndicator').className = 'w-2 h-2 bg-amber-500 rounded-full animate-pulse';
+                    document.getElementById('liveStatus').className = 'text-amber-400 text-sm font-medium';
+                    document.getElementById('liveStatus').textContent = 'Polling';
+                    startPolling();
+                    setTimeout(connectWebSocket, 10000);
+                };
+            } catch (e) {
+                startPolling();
+            }
+        }
+
+        function startPolling() {
+            if (pollingInterval) return;
+            document.getElementById('liveIndicator').className = 'w-2 h-2 bg-amber-500 rounded-full animate-pulse';
+            document.getElementById('liveStatus').className = 'text-amber-400 text-sm font-medium';
+            document.getElementById('liveStatus').textContent = 'Polling';
             
-            ws.onopen = () => {
-                document.getElementById('liveIndicator').classList.add('animate-pulse');
-            };
-            
-            ws.onmessage = (event) => {
-                const log = JSON.parse(event.data);
-                logs.unshift(log);
-                if (logs.length > 1000) logs = logs.slice(0, 1000);
-                updateDisplay();
-            };
-            
-            ws.onclose = () => {
-                document.getElementById('liveIndicator').classList.remove('animate-pulse');
-                setTimeout(connectWebSocket, 3000);
-            };
+            pollingInterval = setInterval(() => {
+                fetch('/api/logs?limit=100')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.length > 0 && (!logs.length || data[0].id !== logs[0]?.id)) {
+                            logs = data;
+                            updateDisplay();
+                        }
+                    })
+                    .catch(e => console.error('Polling error:', e));
+            }, 2000);
         }
 
         function clearLogs() {
             if (confirm('Voulez-vous vraiment effacer tous les logs ?')) {
-                fetch('/api/clear-logs', { method: 'POST' })
-                    .then(() => {
+                fetch('/api/clear-logs', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
                         logs = [];
                         updateDisplay();
-                    });
+                        alert('Logs effacés avec succès !');
+                    }
+                })
+                .catch(e => {
+                    console.error('Clear logs error:', e);
+                    alert('Erreur lors de la suppression des logs');
+                });
             }
         }
 

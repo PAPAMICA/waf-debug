@@ -14,7 +14,18 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
                     colors: {
-                        dark: { 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a', 950: '#020617' },
+                        dark: { 
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8', 
+                            500: '#64748b', 
+                            600: '#475569', 
+                            700: '#334155', 
+                            800: '#1e293b', 
+                            900: '#0f172a', 
+                            950: '#020617' 
+                        },
                         accent: { 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7' }
                     }
                 }
@@ -28,7 +39,7 @@
         .glass-dark { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
     </style>
 </head>
-<body class="bg-dark-950 min-h-screen text-dark-100">
+<body class="bg-dark-950 min-h-screen text-slate-100">
     <!-- Navigation -->
     <nav class="glass-dark sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -39,14 +50,14 @@
                     </div>
                     <div>
                         <span class="text-lg font-semibold text-white">WAF Debug</span>
-                        <span class="hidden sm:inline text-dark-400 text-sm ml-2">Request Receiver</span>
+                        <span class="hidden sm:inline text-slate-400 text-sm ml-2">Request Receiver</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
-                    <a href="/" class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-800 transition-all">
+                    <a href="/" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 transition-all">
                         <i class="fas fa-home mr-2"></i>Dashboard
                     </a>
-                    <a href="/logs" class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-800 transition-all">
+                    <a href="/logs" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 transition-all">
                         <i class="fas fa-scroll mr-2"></i>Logs
                     </a>
                     <a href="/stats" class="px-4 py-2 rounded-lg text-sm font-medium bg-accent-600 text-white">
@@ -65,7 +76,7 @@
             </div>
             <div>
                 <h1 class="text-2xl font-bold text-white">Statistiques</h1>
-                <p class="text-dark-400">Vue d'ensemble des requêtes reçues</p>
+                <p class="text-slate-400">Vue d'ensemble des requêtes reçues</p>
             </div>
         </div>
 
@@ -76,28 +87,28 @@
                     <i class="fas fa-inbox text-blue-400 text-xl"></i>
                 </div>
                 <p id="statTotal" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-dark-400 text-sm mt-1">Total Requêtes</p>
+                <p class="text-slate-400 text-sm mt-1">Total Requêtes</p>
             </div>
             <div class="glass rounded-xl p-5 text-center">
                 <div class="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-network-wired text-violet-400 text-xl"></i>
                 </div>
                 <p id="statIps" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-dark-400 text-sm mt-1">IPs Uniques</p>
+                <p class="text-slate-400 text-sm mt-1">IPs Uniques</p>
             </div>
             <div class="glass rounded-xl p-5 text-center">
                 <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-globe text-amber-400 text-xl"></i>
                 </div>
                 <p id="statCountries" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-dark-400 text-sm mt-1">Pays</p>
+                <p class="text-slate-400 text-sm mt-1">Pays</p>
             </div>
             <div class="glass rounded-xl p-5 text-center">
                 <div class="w-12 h-12 rounded-xl bg-rose-500/20 flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-route text-rose-400 text-xl"></i>
                 </div>
                 <p id="statPaths" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-dark-400 text-sm mt-1">Chemins Testés</p>
+                <p class="text-slate-400 text-sm mt-1">Chemins Testés</p>
             </div>
         </div>
 
@@ -137,7 +148,7 @@
                     </h3>
                 </div>
                 <div id="topIps" class="p-4 max-h-80 overflow-y-auto">
-                    <div class="text-center py-8 text-dark-400">Chargement...</div>
+                    <div class="text-center py-8 text-slate-400">Chargement...</div>
                 </div>
             </div>
             
@@ -150,11 +161,23 @@
                     </h3>
                 </div>
                 <div id="topPaths" class="p-4 max-h-80 overflow-y-auto">
-                    <div class="text-center py-8 text-dark-400">Chargement...</div>
+                    <div class="text-center py-8 text-slate-400">Chargement...</div>
                 </div>
             </div>
         </div>
     </main>
+
+    <footer class="border-t border-dark-800 mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-6 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-slate-400 text-sm">
+                <i class="fas fa-satellite-dish text-accent-500"></i>
+                <span>WAF Debug Receiver</span>
+            </div>
+            <a href="https://waf.secmy.app/" target="_blank" class="text-slate-500 text-sm hover:text-accent-400 transition-colors">
+                Tests via waf.secmy.app <i class="fas fa-external-link ml-1"></i>
+            </a>
+        </div>
+    </footer>
 
     <script>
         let methodsChart = null;
@@ -188,24 +211,27 @@
                     // Methods Chart
                     const methods = stats.byMethod || {};
                     if (methodsChart) methodsChart.destroy();
-                    methodsChart = new Chart(document.getElementById('methodsChart'), {
-                        type: 'doughnut',
-                        data: {
-                            labels: Object.keys(methods),
-                            datasets: [{
-                                data: Object.values(methods),
-                                backgroundColor: [chartColors.blue, chartColors.emerald, chartColors.amber, chartColors.rose, chartColors.violet, chartColors.cyan],
-                                borderWidth: 0
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'right', labels: { color: '#94a3b8', padding: 15 } }
+                    
+                    if (Object.keys(methods).length > 0) {
+                        methodsChart = new Chart(document.getElementById('methodsChart'), {
+                            type: 'doughnut',
+                            data: {
+                                labels: Object.keys(methods),
+                                datasets: [{
+                                    data: Object.values(methods),
+                                    backgroundColor: [chartColors.blue, chartColors.emerald, chartColors.amber, chartColors.rose, chartColors.violet, chartColors.cyan],
+                                    borderWidth: 0
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { position: 'right', labels: { color: '#94a3b8', padding: 15 } }
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
 
                     // Countries Chart
                     const countries = stats.byCountry || {};
@@ -214,27 +240,30 @@
                         .slice(0, 8);
                     
                     if (countriesChart) countriesChart.destroy();
-                    countriesChart = new Chart(document.getElementById('countriesChart'), {
-                        type: 'bar',
-                        data: {
-                            labels: topCountries.map(([c]) => getCountryFlag(c) + ' ' + c),
-                            datasets: [{
-                                data: topCountries.map(([, v]) => v),
-                                backgroundColor: chartColors.amber,
-                                borderRadius: 6
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            indexAxis: 'y',
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
-                                y: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                    
+                    if (topCountries.length > 0) {
+                        countriesChart = new Chart(document.getElementById('countriesChart'), {
+                            type: 'bar',
+                            data: {
+                                labels: topCountries.map(([c]) => getCountryFlag(c) + ' ' + c),
+                                datasets: [{
+                                    data: topCountries.map(([, v]) => v),
+                                    backgroundColor: chartColors.amber,
+                                    borderRadius: 6
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                indexAxis: 'y',
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                                    y: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
 
                     // Top IPs
                     const topIps = Object.entries(stats.byIp || {})
@@ -243,10 +272,10 @@
                     
                     document.getElementById('topIps').innerHTML = topIps.length ? topIps.map(([ip, count], i) => `
                         <div class="flex items-center justify-between py-2 px-3 ${i % 2 === 0 ? 'bg-dark-800/30' : ''} rounded-lg">
-                            <span class="font-mono text-sm text-dark-300">${ip}</span>
+                            <span class="font-mono text-sm text-slate-300">${ip}</span>
                             <span class="px-2 py-1 bg-violet-500/20 text-violet-400 rounded text-xs font-bold">${count}</span>
                         </div>
-                    `).join('') : '<div class="text-center py-8 text-dark-400">Aucune donnée</div>';
+                    `).join('') : '<div class="text-center py-8 text-slate-400">Aucune donnée</div>';
 
                     // Top Paths
                     const topPaths = Object.entries(stats.byPath || {})
@@ -258,8 +287,9 @@
                             <span class="font-mono text-sm text-accent-300 truncate mr-2" title="${path}">${path}</span>
                             <span class="px-2 py-1 bg-rose-500/20 text-rose-400 rounded text-xs font-bold flex-shrink-0">${count}</span>
                         </div>
-                    `).join('') : '<div class="text-center py-8 text-dark-400">Aucune donnée</div>';
-                });
+                    `).join('') : '<div class="text-center py-8 text-slate-400">Aucune donnée</div>';
+                })
+                .catch(e => console.error('Stats error:', e));
         }
 
         loadStats();

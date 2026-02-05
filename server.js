@@ -77,6 +77,17 @@ app.use((req, res, next) => {
 
 app.use(cookieParser());
 
+// CORS headers pour les API
+app.use('/api', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Fonction pour vérifier si c'est une requête interne (pages du site)
 function isInternalRequest(req) {
   const url = req.url;
@@ -204,11 +215,17 @@ app.get('/api/stats', (req, res) => {
 
 // API pour effacer les logs
 app.post('/api/clear-logs', (req, res) => {
-  requestLogs = [];
-  stats = { total: 0, byMethod: {}, byIp: {}, byCountry: {}, byPath: {} };
-  fs.writeFileSync(logsFile, '');
-  fs.writeFileSync(statsFile, JSON.stringify(stats));
-  res.json({ success: true });
+  try {
+    requestLogs = [];
+    stats = { total: 0, byMethod: {}, byIp: {}, byCountry: {}, byPath: {} };
+    fs.writeFileSync(logsFile, '');
+    fs.writeFileSync(statsFile, JSON.stringify(stats));
+    console.log('✅ Logs cleared successfully');
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Error clearing logs:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 // Route catch-all pour capturer TOUTES les autres requêtes

@@ -18,14 +18,19 @@
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        dark: {
-                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
-                            400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
-                            800: '#1e293b', 900: '#0f172a', 950: '#020617',
+                        dark: { 
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8', 
+                            500: '#64748b', 
+                            600: '#475569', 
+                            700: '#334155', 
+                            800: '#1e293b', 
+                            900: '#0f172a', 
+                            950: '#020617' 
                         },
-                        accent: {
-                            400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1',
-                        }
+                        accent: { 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7' }
                     }
                 }
             }
@@ -41,7 +46,7 @@
         .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
     </style>
 </head>
-<body class="bg-dark-950 min-h-screen text-dark-100">
+<body class="bg-dark-950 min-h-screen text-slate-100">
     <!-- Navigation -->
     <nav class="glass-dark sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -52,17 +57,17 @@
                     </div>
                     <div>
                         <span class="text-lg font-semibold text-white">WAF Debug</span>
-                        <span class="hidden sm:inline text-dark-400 text-sm ml-2">Request Receiver</span>
+                        <span class="hidden sm:inline text-slate-400 text-sm ml-2">Request Receiver</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
-                    <a href="/" class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-800 transition-all">
+                    <a href="/" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 transition-all">
                         <i class="fas fa-home mr-2"></i>Dashboard
                     </a>
-                    <a href="/logs" class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-800 transition-all">
+                    <a href="/logs" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 transition-all">
                         <i class="fas fa-scroll mr-2"></i>Logs
                     </a>
-                    <a href="/stats" class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-800 transition-all">
+                    <a href="/stats" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-800 transition-all">
                         <i class="fas fa-chart-bar mr-2"></i>Stats
                     </a>
                     <a href="/debug" class="px-4 py-2 rounded-lg text-sm font-medium bg-accent-600 text-white">
@@ -81,7 +86,7 @@
             </div>
             <div>
                 <h1 class="text-2xl font-bold text-white">Debug HTTP</h1>
-                <p class="text-dark-400">Analysez et testez vos requêtes HTTP en détail</p>
+                <p class="text-slate-400">Analysez et testez vos requêtes HTTP en détail</p>
             </div>
         </div>
 
@@ -95,13 +100,13 @@
                         </div>
                         <div>
                             <h2 class="font-semibold text-white">Requête HTTP</h2>
-                            <p class="text-dark-400 text-sm">Construisez et envoyez une requête</p>
+                            <p class="text-slate-400 text-sm">Construisez et envoyez une requête</p>
                         </div>
                     </div>
                     <div class="p-6 space-y-4">
                         <div class="grid grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-dark-400 text-sm mb-2 font-medium">Méthode</label>
+                                <label class="block text-slate-400 text-sm mb-2 font-medium">Méthode</label>
                                 <select id="method" class="w-full bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm font-mono">
                                     <option value="GET">GET</option>
                                     <option value="POST">POST</option>
@@ -111,21 +116,21 @@
                                 </select>
                             </div>
                             <div class="col-span-2">
-                                <label class="block text-dark-400 text-sm mb-2 font-medium">URL</label>
+                                <label class="block text-slate-400 text-sm mb-2 font-medium">URL</label>
                                 <input type="text" id="url" value="/vuln/test" 
                                     class="w-full bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm font-mono">
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-dark-400 text-sm mb-2 font-medium">Headers <span class="text-dark-500">(un par ligne: Header: Valeur)</span></label>
+                            <label class="block text-slate-400 text-sm mb-2 font-medium">Headers <span class="text-slate-500">(un par ligne: Header: Valeur)</span></label>
                             <textarea id="headers" rows="4" 
                                 class="w-full bg-dark-800 text-white px-4 py-3 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm font-mono scrollbar-thin"
                                 placeholder="User-Agent: Custom Client&#10;X-Custom-Header: test"></textarea>
                         </div>
 
                         <div>
-                            <label class="block text-dark-400 text-sm mb-2 font-medium">Body <span class="text-dark-500">(JSON)</span></label>
+                            <label class="block text-slate-400 text-sm mb-2 font-medium">Body <span class="text-slate-500">(JSON)</span></label>
                             <textarea id="body" rows="6" 
                                 class="w-full bg-dark-800 text-white px-4 py-3 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm font-mono scrollbar-thin"
                                 placeholder='{"key": "value"}'></textarea>
@@ -146,27 +151,27 @@
                         </div>
                         <div>
                             <h2 class="font-semibold text-white">Réponse</h2>
-                            <p class="text-dark-400 text-sm">Détails de la réponse HTTP</p>
+                            <p class="text-slate-400 text-sm">Détails de la réponse HTTP</p>
                         </div>
                     </div>
                     <div class="p-6 space-y-4">
                         <div class="grid grid-cols-2 gap-4">
                             <div class="bg-dark-800 rounded-lg p-4">
-                                <p class="text-dark-400 text-xs mb-1 font-medium">Status Code</p>
+                                <p class="text-slate-400 text-xs mb-1 font-medium">Status Code</p>
                                 <p id="statusCode" class="text-2xl font-bold text-white font-mono">200</p>
                             </div>
                             <div class="bg-dark-800 rounded-lg p-4">
-                                <p class="text-dark-400 text-xs mb-1 font-medium">Temps de Réponse</p>
+                                <p class="text-slate-400 text-xs mb-1 font-medium">Temps de Réponse</p>
                                 <p id="responseTime" class="text-2xl font-bold text-white font-mono">0ms</p>
                             </div>
                         </div>
                         <div>
-                            <h3 class="text-dark-400 text-sm mb-2 font-medium">Response Headers</h3>
-                            <pre id="responseHeaders" class="bg-dark-900 p-4 rounded-lg text-dark-300 text-xs overflow-x-auto font-mono scrollbar-thin max-h-32"></pre>
+                            <h3 class="text-slate-400 text-sm mb-2 font-medium">Response Headers</h3>
+                            <pre id="responseHeaders" class="bg-dark-900 p-4 rounded-lg text-slate-300 text-xs overflow-x-auto font-mono scrollbar-thin max-h-32"></pre>
                         </div>
                         <div>
-                            <h3 class="text-dark-400 text-sm mb-2 font-medium">Response Body</h3>
-                            <pre id="responseBody" class="bg-dark-900 p-4 rounded-lg text-dark-300 text-xs overflow-x-auto font-mono scrollbar-thin max-h-64"></pre>
+                            <h3 class="text-slate-400 text-sm mb-2 font-medium">Response Body</h3>
+                            <pre id="responseBody" class="bg-dark-900 p-4 rounded-lg text-slate-300 text-xs overflow-x-auto font-mono scrollbar-thin max-h-64"></pre>
                         </div>
                     </div>
                 </div>
@@ -180,11 +185,11 @@
                     </div>
                     <div>
                         <h2 class="font-semibold text-white">Requêtes Récentes</h2>
-                        <p class="text-dark-400 text-sm">Cliquez pour reproduire</p>
+                        <p class="text-slate-400 text-sm">Cliquez pour reproduire</p>
                     </div>
                 </div>
                 <div id="recentRequests" class="p-4 space-y-2 max-h-[600px] overflow-y-auto scrollbar-thin">
-                    <p class="text-dark-400 text-sm text-center py-4">Chargement...</p>
+                    <p class="text-slate-400 text-sm text-center py-4">Chargement...</p>
                 </div>
             </div>
         </div>
@@ -192,11 +197,11 @@
 
     <footer class="border-t border-dark-800 mt-12">
         <div class="max-w-7xl mx-auto px-4 py-6 flex items-center justify-between">
-            <div class="flex items-center gap-2 text-dark-400 text-sm">
+            <div class="flex items-center gap-2 text-slate-400 text-sm">
                 <i class="fas fa-satellite-dish text-accent-500"></i>
                 <span>WAF Debug Receiver</span>
             </div>
-            <a href="https://waf.secmy.app/" target="_blank" class="text-dark-500 text-sm hover:text-accent-400 transition-colors">
+            <a href="https://waf.secmy.app/" target="_blank" class="text-slate-500 text-sm hover:text-accent-400 transition-colors">
                 Tests via waf.secmy.app <i class="fas fa-external-link ml-1"></i>
             </a>
         </div>
@@ -289,13 +294,13 @@
                                     </span>
                                     <span class="text-white font-mono text-sm truncate max-w-[200px]">${log.url}</span>
                                 </div>
-                                <span class="text-dark-500 text-xs">${new Date(log.timestamp).toLocaleTimeString('fr-FR')}</span>
+                                <span class="text-slate-500 text-xs">${new Date(log.timestamp).toLocaleTimeString('fr-FR')}</span>
                             </div>
-                            <div class="text-dark-400 text-xs group-hover:text-accent-400 transition-colors">
+                            <div class="text-slate-400 text-xs group-hover:text-accent-400 transition-colors">
                                 <i class="fas fa-redo mr-1"></i>Cliquez pour reproduire
                             </div>
                         </div>
-                    `).join('') : '<p class="text-dark-400 text-sm text-center py-4">Aucune requête récente</p>';
+                    `).join('') : '<p class="text-slate-400 text-sm text-center py-4">Aucune requête récente</p>';
                 });
         }
 
@@ -325,7 +330,7 @@
                 'DELETE': 'bg-rose-500/20 text-rose-400',
                 'PATCH': 'bg-violet-500/20 text-violet-400'
             };
-            return colors[method] || 'bg-dark-600 text-dark-300';
+            return colors[method] || 'bg-dark-600 text-slate-300';
         }
 
         loadRecentRequests();
