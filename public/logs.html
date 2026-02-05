@@ -3,29 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WAF Debug - Logs</title>
+    <title>Logs - WAF Debug</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
                     colors: {
-                        dark: {
-                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
-                            400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
-                            800: '#1e293b', 900: '#0f172a', 950: '#020617',
-                        },
-                        accent: {
-                            400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1',
-                        }
+                        dark: { 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a', 950: '#020617' },
+                        accent: { 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7' }
                     }
                 }
             }
@@ -36,10 +25,6 @@
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .glass { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .glass-dark { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        details[open] summary .chevron { transform: rotate(90deg); }
-        .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
-        .scrollbar-thin::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
-        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
     </style>
 </head>
 <body class="bg-dark-950 min-h-screen text-dark-100">
@@ -48,12 +33,12 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-500 to-accent-700 flex items-center justify-center shadow-lg">
-                        <i class="fas fa-shield-halved text-white text-lg"></i>
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-lg">
+                        <i class="fas fa-satellite-dish text-white text-lg"></i>
                     </div>
                     <div>
                         <span class="text-lg font-semibold text-white">WAF Debug</span>
-                        <span class="hidden sm:inline text-dark-400 text-sm ml-2">Security Testing Platform</span>
+                        <span class="hidden sm:inline text-dark-400 text-sm ml-2">Request Receiver</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
@@ -66,129 +51,241 @@
                     <a href="/stats" class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-800 transition-all">
                         <i class="fas fa-chart-bar mr-2"></i>Stats
                     </a>
-                    <a href="/debug" class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-800 transition-all">
-                        <i class="fas fa-bug mr-2"></i>Debug
-                    </a>
-                    <a href="/tests" class="px-4 py-2 rounded-lg text-sm font-medium text-dark-300 hover:text-white hover:bg-dark-800 transition-all">
-                        <i class="fas fa-flask-vial mr-2"></i>Tests
-                    </a>
                 </div>
             </div>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-xl">
-                    <i class="fas fa-scroll text-white text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold text-white">Logs en Direct</h1>
-                    <p class="text-dark-400">Surveillance en temps réel des requêtes HTTP</p>
-                </div>
-            </div>
-            <button onclick="clearLogs()" class="px-4 py-2 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 transition-all font-medium text-sm">
-                <i class="fas fa-trash mr-2"></i>Effacer
-            </button>
-        </div>
-
-        <!-- Filters -->
+        <!-- Header & Filters -->
         <div class="glass rounded-xl p-4 mb-6">
-            <div class="flex flex-col lg:flex-row gap-4">
-                <div class="flex-1">
-                    <div class="relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-dark-500"></i>
-                        <input type="text" id="searchInput" placeholder="Rechercher (URL, IP, payload...)" 
-                            class="w-full bg-dark-800 text-white pl-10 pr-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
+            <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                        <i class="fas fa-scroll text-blue-400"></i>
                     </div>
-                </div>
-                <div class="flex flex-wrap gap-3">
-                    <select id="methodFilter" class="bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
-                        <option value="">Toutes méthodes</option>
-                        <option value="GET">GET</option>
-                        <option value="POST">POST</option>
-                        <option value="PUT">PUT</option>
-                        <option value="DELETE">DELETE</option>
-                    </select>
-                    <select id="suspiciousFilter" class="bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
-                        <option value="">Tous les types</option>
-                        <option value="suspicious">Suspectes uniquement</option>
-                        <option value="safe">Normales uniquement</option>
-                    </select>
-                    <select id="logTypeFilter" class="bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
-                        <option value="">Toutes sources</option>
-                        <option value="waf-test">Tests WAF</option>
-                        <option value="request">Requêtes directes</option>
-                    </select>
-                    <select id="testStatusFilter" class="bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
-                        <option value="">Tous statuts</option>
-                        <option value="200">Non bloqué (2xx)</option>
-                        <option value="403">Bloqué (403)</option>
-                        <option value="301">Redirect (3xx)</option>
-                        <option value="ERR">Erreur</option>
-                    </select>
-                    <div class="flex items-center gap-2 px-4 py-2 bg-dark-800 rounded-lg border border-dark-700">
-                        <div id="liveIndicator" class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                        <span class="text-emerald-400 text-sm font-medium">Live</span>
+                    <div>
+                        <h1 class="font-semibold text-white">Logs des Requêtes</h1>
+                        <p class="text-dark-400 text-sm"><span id="logCount">0</span> requêtes affichées</p>
                     </div>
-                </div>
-            </div>
-            <div class="flex items-center justify-between mt-4 pt-4 border-t border-dark-700">
-                <div class="flex items-center gap-4 text-sm">
-                    <span class="text-dark-400">Résultats: <span id="logCount" class="text-white font-mono">0</span></span>
-                    <span class="text-dark-400">Total: <span id="totalCount" class="text-white font-mono">0</span></span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="text-dark-400 text-sm">Afficher:</span>
-                    <select id="limitFilter" class="bg-dark-800 text-white px-3 py-1.5 rounded-lg border border-dark-700 text-sm">
-                        <option value="50">50</option>
-                        <option value="100" selected>100</option>
-                        <option value="200">200</option>
-                        <option value="500">500</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Logs Container -->
-        <div class="glass rounded-xl overflow-hidden">
-            <div class="px-6 py-4 border-b border-dark-700/50 flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-accent-500/20 flex items-center justify-center">
-                    <i class="fas fa-tower-broadcast text-accent-400"></i>
-                </div>
-                <div>
-                    <h2 class="font-semibold text-white">Requêtes HTTP</h2>
-                    <p class="text-dark-400 text-sm">Logs détaillés en temps réel</p>
+                    <div id="liveIndicator" class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                    <span class="text-emerald-400 text-sm font-medium">Live</span>
                 </div>
             </div>
             
-            <div id="logsContainer" class="p-4 space-y-3 max-h-[800px] overflow-y-auto scrollbar-thin">
-                <div class="text-center py-12">
-                    <div class="w-16 h-16 rounded-2xl bg-dark-800 flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-satellite-dish text-dark-500 text-2xl"></i>
-                    </div>
-                    <p class="text-dark-400">En attente de requêtes...</p>
-                    <p class="text-dark-500 text-sm mt-1">Les nouvelles requêtes apparaîtront ici</p>
-                </div>
+            <!-- Filters -->
+            <div class="flex flex-wrap gap-3">
+                <input type="text" id="searchFilter" placeholder="Rechercher dans l'URL ou le body..." 
+                    class="flex-1 min-w-[200px] bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
+                
+                <select id="methodFilter" class="bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
+                    <option value="">Toutes méthodes</option>
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PATCH">PATCH</option>
+                    <option value="OPTIONS">OPTIONS</option>
+                </select>
+                
+                <select id="attackFilter" class="bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
+                    <option value="">Tous types</option>
+                    <option value="XSS">XSS</option>
+                    <option value="SQLi">SQLi</option>
+                    <option value="NoSQLi">NoSQLi</option>
+                    <option value="Path Traversal">Path Traversal</option>
+                    <option value="Command Injection">Command Injection</option>
+                    <option value="SSTI">SSTI</option>
+                    <option value="XXE">XXE</option>
+                    <option value="LFI/SSRF">LFI/SSRF</option>
+                    <option value="Log4Shell">Log4Shell</option>
+                </select>
+                
+                <select id="limitFilter" class="bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
+                    <option value="50">50 requêtes</option>
+                    <option value="100" selected>100 requêtes</option>
+                    <option value="250">250 requêtes</option>
+                    <option value="500">500 requêtes</option>
+                </select>
+                
+                <button onclick="clearLogs()" class="px-4 py-2.5 bg-rose-500/20 text-rose-400 rounded-lg hover:bg-rose-500/30 transition-colors text-sm font-medium">
+                    <i class="fas fa-trash mr-2"></i>Effacer
+                </button>
+            </div>
+        </div>
+
+        <!-- Logs List -->
+        <div id="logsContainer" class="space-y-3">
+            <div class="text-center py-12 text-dark-400">
+                <i class="fas fa-satellite-dish text-4xl mb-3 opacity-50"></i>
+                <p>Chargement des logs...</p>
             </div>
         </div>
     </main>
 
-    <footer class="border-t border-dark-800 mt-12">
-        <div class="max-w-7xl mx-auto px-4 py-6 flex items-center justify-between">
-            <div class="flex items-center gap-2 text-dark-400 text-sm">
-                <i class="fas fa-shield-halved text-accent-500"></i>
-                <span>WAF Debug Platform</span>
-            </div>
-            <div class="text-dark-500 text-sm">Environnement de test uniquement</div>
-        </div>
-    </footer>
-
     <script>
         let logs = [];
         let ws;
+
+        const methodColors = {
+            'GET': 'bg-blue-500/20 text-blue-400',
+            'POST': 'bg-emerald-500/20 text-emerald-400',
+            'PUT': 'bg-amber-500/20 text-amber-400',
+            'DELETE': 'bg-rose-500/20 text-rose-400',
+            'PATCH': 'bg-violet-500/20 text-violet-400',
+            'OPTIONS': 'bg-dark-600 text-dark-300'
+        };
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTimestamp(ts) {
+            const d = new Date(ts);
+            return d.toLocaleString('fr-FR');
+        }
+
+        function getCountryFlag(code) {
+            if (!code) return '';
+            const offset = 127397;
+            const chars = code.toUpperCase().split('').map(c => String.fromCodePoint(c.charCodeAt(0) + offset));
+            return chars.join('');
+        }
+
+        function renderLog(log) {
+            const attacks = log.detectedAttacks || [];
+            const hasAttacks = attacks.length > 0;
+            const methodColor = methodColors[log.method] || 'bg-dark-600 text-dark-300';
+            const flag = log.geo?.country ? getCountryFlag(log.geo.country) : '';
+            
+            let bodyContent = '';
+            if (log.rawBody && log.rawBody.length > 0) {
+                bodyContent = log.rawBody;
+            } else if (log.body && typeof log.body === 'object' && !log.body._raw) {
+                bodyContent = JSON.stringify(log.body, null, 2);
+            } else if (log.body?._raw) {
+                bodyContent = log.body._raw;
+            }
+
+            let queryContent = '';
+            if (log.query && Object.keys(log.query).length > 0) {
+                queryContent = JSON.stringify(log.query, null, 2);
+            }
+
+            return `
+                <div class="glass rounded-xl overflow-hidden ${hasAttacks ? 'ring-1 ring-rose-500/50' : ''}">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between gap-4 mb-3">
+                            <div class="flex items-center gap-3 min-w-0 flex-1">
+                                <span class="px-2.5 py-1 rounded-lg ${methodColor} font-mono text-xs font-medium flex-shrink-0">
+                                    ${log.method}
+                                </span>
+                                <span class="text-accent-300 font-mono text-sm truncate" title="${escapeHtml(log.url)}">${escapeHtml(log.url)}</span>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                ${hasAttacks ? `<span class="px-2 py-1 bg-rose-500/20 text-rose-400 rounded-lg text-xs font-medium"><i class="fas fa-shield-exclamation mr-1"></i>${attacks[0]}</span>` : ''}
+                                <span class="text-dark-500 text-xs font-mono">${formatTimestamp(log.timestamp)}</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 text-sm">
+                            ${log.ip ? `
+                                <div class="px-3 py-1.5 bg-dark-800/50 rounded-lg flex items-center gap-2">
+                                    ${flag ? `<span>${flag}</span>` : '<i class="fas fa-network-wired text-dark-500"></i>'}
+                                    <span class="text-dark-300 font-mono">${log.ip}</span>
+                                </div>
+                            ` : ''}
+                            ${log.headers?.['user-agent'] ? `
+                                <div class="px-3 py-1.5 bg-dark-800/50 rounded-lg flex items-center gap-2 max-w-md">
+                                    <i class="fas fa-browser text-dark-500"></i>
+                                    <span class="text-dark-400 truncate text-xs">${escapeHtml(log.headers['user-agent'].substring(0, 60))}...</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${attacks.length > 1 ? `
+                            <div class="mt-3 flex flex-wrap gap-1">
+                                ${attacks.map(a => `<span class="px-2 py-1 bg-rose-500/10 text-rose-400 rounded text-xs">${a}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${queryContent ? `
+                            <details class="mt-3">
+                                <summary class="cursor-pointer text-dark-400 text-sm hover:text-dark-300 flex items-center gap-2">
+                                    <i class="fas fa-chevron-right text-xs transform transition-transform"></i>
+                                    <span>Query Parameters</span>
+                                </summary>
+                                <pre class="mt-2 bg-dark-900 rounded-lg p-3 text-xs font-mono text-accent-300 overflow-x-auto">${escapeHtml(queryContent)}</pre>
+                            </details>
+                        ` : ''}
+                        
+                        ${bodyContent ? `
+                            <details class="mt-3">
+                                <summary class="cursor-pointer text-dark-400 text-sm hover:text-dark-300 flex items-center gap-2">
+                                    <i class="fas fa-chevron-right text-xs transform transition-transform"></i>
+                                    <span>Request Body</span>
+                                </summary>
+                                <pre class="mt-2 bg-dark-900 rounded-lg p-3 text-xs font-mono text-emerald-300 overflow-x-auto max-h-64 overflow-y-auto">${escapeHtml(bodyContent.substring(0, 2000))}${bodyContent.length > 2000 ? '\n... (truncated)' : ''}</pre>
+                            </details>
+                        ` : ''}
+                        
+                        <details class="mt-3">
+                            <summary class="cursor-pointer text-dark-400 text-sm hover:text-dark-300 flex items-center gap-2">
+                                <i class="fas fa-chevron-right text-xs transform transition-transform"></i>
+                                <span>Headers</span>
+                            </summary>
+                            <pre class="mt-2 bg-dark-900 rounded-lg p-3 text-xs font-mono text-violet-300 overflow-x-auto max-h-64 overflow-y-auto">${escapeHtml(JSON.stringify(log.headers, null, 2))}</pre>
+                        </details>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateDisplay() {
+            const search = document.getElementById('searchFilter').value.toLowerCase();
+            const method = document.getElementById('methodFilter').value;
+            const attack = document.getElementById('attackFilter').value;
+            const limit = parseInt(document.getElementById('limitFilter').value);
+
+            let filtered = logs.filter(log => {
+                if (method && log.method !== method) return false;
+                if (attack && !(log.detectedAttacks || []).includes(attack)) return false;
+                if (search) {
+                    const searchStr = (log.url + ' ' + log.rawBody + ' ' + JSON.stringify(log.query)).toLowerCase();
+                    if (!searchStr.includes(search)) return false;
+                }
+                return true;
+            });
+
+            filtered = filtered.slice(0, limit);
+            document.getElementById('logCount').textContent = filtered.length;
+
+            const container = document.getElementById('logsContainer');
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-dark-400">
+                        <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
+                        <p>Aucune requête trouvée</p>
+                        <p class="text-sm text-dark-500 mt-1">Modifiez vos filtres ou lancez des tests depuis waf.secmy.app</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = filtered.map(renderLog).join('');
+            }
+        }
+
+        function loadLogs() {
+            fetch('/api/logs?limit=500')
+                .then(res => res.json())
+                .then(data => {
+                    logs = data;
+                    updateDisplay();
+                });
+        }
 
         function connectWebSocket() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -199,14 +296,10 @@
             };
             
             ws.onmessage = (event) => {
-                const rawLog = JSON.parse(event.data);
-                const log = decodeLog(rawLog);
-                if (shouldDisplayLog(log)) {
-                    logs.unshift(log);
-                    const limit = parseInt(document.getElementById('limitFilter').value) || 100;
-                    if (logs.length > limit * 2) logs = logs.slice(0, limit * 2);
-                    updateLogsDisplay();
-                }
+                const log = JSON.parse(event.data);
+                logs.unshift(log);
+                if (logs.length > 1000) logs = logs.slice(0, 1000);
+                updateDisplay();
             };
             
             ws.onclose = () => {
@@ -215,418 +308,24 @@
             };
         }
 
-        function shouldDisplayLog(log) {
-            // Toujours afficher les logs de test WAF
-            if (log.type === 'waf-test') return true;
-            
-            const url = log.url || '';
-            const internalPages = ['/', '/logs', '/stats', '/debug', '/tests', '/index.html', '/logs.html', '/stats.html', '/debug.html', '/tests.html'];
-            const urlPath = url.split('?')[0];
-            if (internalPages.includes(urlPath)) return false;
-            if (url.startsWith('/api/')) return false;
-            if (url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|map|html)$/)) return false;
-            return true;
-        }
-
-        function detectAttackFromLog(log) {
-            const testString = (log.url || '') + JSON.stringify(log.query || {}) + JSON.stringify(log.body || {});
-            const patterns = [
-                /(\.\.[\/\\]){2,}/, /<script[^>]*>/i, /javascript:/i, /on(error|load|click|focus)\s*=/i,
-                /(union\s+select|or\s+1\s*=\s*1|'\s+or\s+')/i, /\{\s*['"]\$ne['"]\s*:/,
-                /;\s*(cat|ls|wget|curl|bash|sh)\s+/i, /\|\s*(cat|ls|wget|curl|bash)\s+/i,
-                /<!DOCTYPE[^>]+ENTITY/i, /\{\{.*\}\}/, /(file:\/\/\/|php:\/\/filter)/i,
-            ];
-            return patterns.some(pattern => pattern.test(testString));
-        }
-
-        // Décoder base64
-        function b64Decode(str) {
-            try {
-                return atob(str);
-            } catch(e) {
-                return str;
-            }
-        }
-        
-        // Décoder un log encodé
-        function decodeLog(log) {
-            if (!log._encoded) return log;
-            const decoded = { ...log };
-            if (decoded.url) decoded.url = b64Decode(decoded.url);
-            if (decoded.payload) decoded.payload = b64Decode(decoded.payload);
-            if (decoded.rawBody) decoded.rawBody = b64Decode(decoded.rawBody);
-            if (decoded.query) {
-                try {
-                    decoded.query = JSON.parse(b64Decode(decoded.query));
-                } catch(e) {
-                    decoded.query = {};
-                }
-            }
-            if (decoded.body) {
-                try {
-                    const bodyStr = b64Decode(decoded.body);
-                    decoded.body = JSON.parse(bodyStr);
-                } catch(e) {
-                    decoded.body = { _raw: b64Decode(decoded.body) };
-                }
-            }
-            return decoded;
-        }
-
-        function loadInitialLogs() {
-            fetch('/api/logs')
-                .then(res => res.json())
-                .then(data => {
-                    logs = data.map(decodeLog).filter(shouldDisplayLog);
-                    updateLogsDisplay();
-                });
-        }
-
-        function updateLogsDisplay() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const methodFilter = document.getElementById('methodFilter').value;
-            const suspiciousFilter = document.getElementById('suspiciousFilter').value;
-            const logTypeFilter = document.getElementById('logTypeFilter').value;
-            const testStatusFilter = document.getElementById('testStatusFilter').value;
-            const limit = parseInt(document.getElementById('limitFilter').value) || 100;
-            
-            let filteredLogs = logs.filter(log => {
-                // Search filter
-                if (searchTerm) {
-                    const searchStr = JSON.stringify(log).toLowerCase();
-                    if (!searchStr.includes(searchTerm)) return false;
-                }
-                // Method filter
-                if (methodFilter && log.method !== methodFilter) return false;
-                // Suspicious filter
-                const isSuspicious = detectAttackFromLog(log) || (log.url && log.url.includes('/vuln/')) || log.type === 'waf-test';
-                if (suspiciousFilter === 'suspicious' && !isSuspicious) return false;
-                if (suspiciousFilter === 'safe' && isSuspicious) return false;
-                // Log type filter
-                if (logTypeFilter === 'waf-test' && log.type !== 'waf-test') return false;
-                if (logTypeFilter === 'request' && log.type === 'waf-test') return false;
-                // Test status filter (only for waf-test logs)
-                if (testStatusFilter && log.type === 'waf-test' && log.status !== testStatusFilter) return false;
-                return true;
-            });
-
-            document.getElementById('totalCount').textContent = logs.length;
-            document.getElementById('logCount').textContent = filteredLogs.length;
-            
-            filteredLogs = filteredLogs.slice(0, limit);
-            
-            const container = document.getElementById('logsContainer');
-            if (filteredLogs.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12">
-                        <div class="w-16 h-16 rounded-2xl bg-dark-800 flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-inbox text-dark-500 text-2xl"></i>
-                        </div>
-                        <p class="text-dark-400">Aucun log correspondant</p>
-                        <p class="text-dark-500 text-sm mt-1">Modifiez vos filtres ou attendez de nouvelles requêtes</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = filteredLogs.map(log => {
-                const timestamp = new Date(log.timestamp);
-                const isWafTest = log.type === 'waf-test';
-                const isVulnTest = log.url && log.url.includes('/vuln/');
-                const isSuspicious = detectAttackFromLog(log) || isVulnTest || isWafTest;
-                const realIp = log.realIp || log.ip;
-                const geoInfo = log.geo;
-                const vulnType = log.category || (log.headers ? log.headers['x-vuln-type'] : '');
-                const contentType = log.headers ? log.headers['content-type'] : '';
-                const referer = log.headers ? log.headers['referer'] : '';
-                const host = log.headers ? log.headers['host'] : '';
-                const testStatus = log.status;
-                const testError = log.error;
-                
-                // Status color for WAF tests
-                const getStatusColor = (status) => {
-                    if (status === '200') return 'bg-rose-500/20 text-rose-400';
-                    if (status === '403') return 'bg-emerald-500/20 text-emerald-400';
-                    if (status === '301') return 'bg-amber-500/20 text-amber-400';
-                    return 'bg-dark-600 text-dark-300';
-                };
-                
-                return `
-                    <div class="glass-dark rounded-xl overflow-hidden ${isSuspicious ? 'ring-1 ring-rose-500/50' : ''} ${isWafTest ? 'border-l-2 border-violet-500' : ''}">
-                        <div class="p-4">
-                            <div class="flex items-center justify-between gap-4 mb-3">
-                                <div class="flex items-center gap-3 min-w-0 flex-1">
-                                    ${isWafTest ? '<span class="px-2 py-1 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-medium flex-shrink-0"><i class="fas fa-flask-vial mr-1"></i>TEST</span>' : ''}
-                                    <span class="px-2.5 py-1 rounded-lg ${getMethodColor(log.method)} font-mono text-xs font-medium flex-shrink-0">
-                                        ${log.method}
-                                    </span>
-                                    ${isWafTest && testStatus ? `<span class="px-2 py-1 rounded-lg ${getStatusColor(testStatus)} font-mono text-xs font-medium flex-shrink-0">${testStatus}</span>` : ''}
-                                    <span class="text-accent-300 font-mono text-sm truncate" title="${log.url}">${log.url}</span>
-                                </div>
-                                <span class="text-dark-500 text-xs font-mono flex-shrink-0">
-                                    ${timestamp.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit', second: '2-digit'})}
-                                </span>
-                            </div>
-                            
-                            <div class="flex flex-wrap gap-2">
-                                <div class="px-3 py-1.5 bg-dark-800 rounded-lg text-xs">
-                                    <span class="text-dark-400">IP:</span>
-                                    <span class="text-white font-mono ml-1">${realIp}</span>
-                                    ${geoInfo ? `<span class="ml-1" title="${geoInfo.country}${geoInfo.city ? ', ' + geoInfo.city : ''}">${getCountryFlag(geoInfo.country)}</span>` : ''}
-                                </div>
-                                ${vulnType ? `
-                                    <div class="px-3 py-1.5 bg-rose-500/10 rounded-lg text-xs">
-                                        <span class="text-rose-400">Cat:</span>
-                                        <span class="text-rose-300 ml-1">${vulnType}</span>
-                                    </div>
-                                ` : ''}
-                                ${isWafTest && testError ? `
-                                    <div class="px-3 py-1.5 bg-red-500/10 rounded-lg text-xs">
-                                        <span class="text-red-400">Erreur:</span>
-                                        <span class="text-red-300 ml-1">${testError}</span>
-                                    </div>
-                                ` : ''}
-                                ${log.query && Object.keys(log.query).length > 0 ? `
-                                    <div class="px-3 py-1.5 bg-amber-500/10 rounded-lg text-xs">
-                                        <span class="text-amber-400">Query:</span>
-                                        <span class="text-amber-300 ml-1">${Object.keys(log.query).length} param(s)</span>
-                                    </div>
-                                ` : ''}
-                                ${log.body && Object.keys(log.body).length > 0 ? `
-                                    <div class="px-3 py-1.5 bg-emerald-500/10 rounded-lg text-xs">
-                                        <span class="text-emerald-400">Body:</span>
-                                        <span class="text-emerald-300 ml-1">${Object.keys(log.body).length} champ(s)</span>
-                                    </div>
-                                ` : ''}
-                            </div>
-                            ${isWafTest && log.payload ? `
-                                <div class="mt-3 px-3 py-2 bg-dark-900 rounded-lg">
-                                    <span class="text-violet-400 text-xs font-medium">Payload:</span>
-                                    <code class="text-violet-200 text-xs font-mono ml-2 break-all">${escapeHtml(log.payload)}</code>
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        <details class="group">
-                            <summary class="px-4 py-2 bg-dark-900/50 cursor-pointer flex items-center gap-2 text-dark-400 text-sm hover:text-white transition-colors">
-                                <i class="fas fa-chevron-right chevron transition-transform text-xs"></i>
-                                <span>Voir tous les détails</span>
-                            </summary>
-                            <div class="p-4 bg-dark-900/50 space-y-3">
-                                <!-- Résumé rapide -->
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    <div class="bg-dark-800 rounded-lg p-3">
-                                        <div class="text-dark-500 text-xs mb-1">Méthode</div>
-                                        <div class="text-white font-mono text-sm font-medium">${log.method}</div>
-                                    </div>
-                                    <div class="bg-dark-800 rounded-lg p-3">
-                                        <div class="text-dark-500 text-xs mb-1">IP Source</div>
-                                        <div class="text-white font-mono text-sm">${realIp} ${geoInfo ? getCountryFlag(geoInfo.country) : ''}</div>
-                                    </div>
-                                    <div class="bg-dark-800 rounded-lg p-3">
-                                        <div class="text-dark-500 text-xs mb-1">Localisation</div>
-                                        <div class="text-white text-sm">${geoInfo ? (geoInfo.city ? geoInfo.city + ', ' : '') + geoInfo.country : 'Inconnue'}</div>
-                                    </div>
-                                    <div class="bg-dark-800 rounded-lg p-3">
-                                        <div class="text-dark-500 text-xs mb-1">Horodatage</div>
-                                        <div class="text-white font-mono text-sm">${timestamp.toLocaleString('fr-FR')}</div>
-                                    </div>
-                                </div>
-
-                                <!-- URL complète -->
-                                <div class="bg-dark-800 rounded-lg p-3">
-                                    <div class="text-accent-400 text-xs mb-2 font-medium flex items-center gap-2">
-                                        <i class="fas fa-link"></i> URL Complète
-                                    </div>
-                                    <code class="text-accent-200 text-xs break-all font-mono block">${log.url}</code>
-                                </div>
-
-                                <!-- Host & Referer -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <div class="bg-dark-800 rounded-lg p-3">
-                                        <div class="text-violet-400 text-xs mb-2 font-medium flex items-center gap-2">
-                                            <i class="fas fa-server"></i> Host
-                                        </div>
-                                        <code class="text-violet-200 text-xs font-mono">${host || 'N/A'}</code>
-                                    </div>
-                                    <div class="bg-dark-800 rounded-lg p-3">
-                                        <div class="text-pink-400 text-xs mb-2 font-medium flex items-center gap-2">
-                                            <i class="fas fa-arrow-left"></i> Referer
-                                        </div>
-                                        <code class="text-pink-200 text-xs font-mono break-all">${referer || 'Direct / Aucun'}</code>
-                                    </div>
-                                </div>
-
-                                <!-- User-Agent -->
-                                <div class="bg-dark-800 rounded-lg p-3">
-                                    <div class="text-cyan-400 text-xs mb-2 font-medium flex items-center gap-2">
-                                        <i class="fas fa-desktop"></i> User-Agent
-                                    </div>
-                                    <code class="text-cyan-200 text-xs break-all font-mono block">${log.headers ? log.headers['user-agent'] || 'N/A' : 'N/A'}</code>
-                                    ${log.headers && log.headers['user-agent'] ? `
-                                        <div class="mt-2 flex flex-wrap gap-2">
-                                            ${parseUserAgent(log.headers['user-agent'])}
-                                        </div>
-                                    ` : ''}
-                                </div>
-
-                                ${log.query && Object.keys(log.query).length > 0 ? `
-                                    <div class="bg-dark-800 rounded-lg p-3">
-                                        <div class="text-amber-400 text-xs mb-2 font-medium flex items-center gap-2">
-                                            <i class="fas fa-question-circle"></i> Query Parameters (${Object.keys(log.query).length})
-                                        </div>
-                                        <div class="space-y-1">
-                                            ${Object.entries(log.query).map(([key, value]) => `
-                                                <div class="flex gap-2 text-xs py-1 border-b border-dark-700 last:border-0">
-                                                    <span class="text-amber-300 font-medium min-w-[100px]">${escapeHtml(key)}</span>
-                                                    <span class="text-amber-100 font-mono break-all">${escapeHtml(String(value))}</span>
-                                                </div>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                ` : ''}
-
-                                ${log.body && Object.keys(log.body).length > 0 ? `
-                                    <div class="bg-dark-800 rounded-lg p-3">
-                                        <div class="text-emerald-400 text-xs mb-2 font-medium flex items-center gap-2">
-                                            <i class="fas fa-file-code"></i> Request Body (${Object.keys(log.body).length} champ${Object.keys(log.body).length > 1 ? 's' : ''})
-                                            ${contentType ? `<span class="text-dark-500 font-normal">${contentType}</span>` : ''}
-                                        </div>
-                                        <pre class="text-emerald-200/80 text-xs overflow-x-auto font-mono bg-dark-900 p-2 rounded">${JSON.stringify(log.body, null, 2)}</pre>
-                                    </div>
-                                ` : ''}
-
-                                ${log.cookies && Object.keys(log.cookies).length > 0 ? `
-                                    <div class="bg-dark-800 rounded-lg p-3">
-                                        <div class="text-orange-400 text-xs mb-2 font-medium flex items-center gap-2">
-                                            <i class="fas fa-cookie-bite"></i> Cookies (${Object.keys(log.cookies).length})
-                                        </div>
-                                        <div class="space-y-1">
-                                            ${Object.entries(log.cookies).map(([key, value]) => `
-                                                <div class="flex gap-2 text-xs py-1 border-b border-dark-700 last:border-0">
-                                                    <span class="text-orange-300 font-medium min-w-[100px]">${escapeHtml(key)}</span>
-                                                    <span class="text-orange-100 font-mono break-all">${escapeHtml(String(value))}</span>
-                                                </div>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                ` : ''}
-
-                                <!-- Headers -->
-                                ${log.headers ? `
-                                <div class="bg-dark-800 rounded-lg p-3">
-                                    <div class="text-blue-400 text-xs mb-2 font-medium flex items-center gap-2">
-                                        <i class="fas fa-list"></i> Headers HTTP (${Object.keys(log.headers).length})
-                                    </div>
-                                    <div class="space-y-1 max-h-48 overflow-y-auto scrollbar-thin">
-                                        ${Object.entries(log.headers).filter(([key]) => !key.startsWith(':')).map(([key, value]) => `
-                                            <div class="flex gap-2 text-xs py-1 border-b border-dark-700 last:border-0">
-                                                <span class="text-blue-300 font-medium min-w-[140px]">${key}</span>
-                                                <span class="text-blue-100 font-mono break-all">${escapeHtml(String(value))}</span>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                                ` : ''}
-
-                                <!-- Analyse de sécurité -->
-                                <div class="bg-dark-800 rounded-lg p-3 ${isSuspicious ? 'ring-1 ring-rose-500/30' : ''}">
-                                    <div class="${isSuspicious ? 'text-rose-400' : 'text-emerald-400'} text-xs mb-2 font-medium flex items-center gap-2">
-                                        <i class="fas ${isSuspicious ? 'fa-exclamation-triangle' : 'fa-shield-check'}"></i> Analyse de Sécurité
-                                    </div>
-                                    <div class="flex flex-wrap gap-2">
-                                        ${isSuspicious ? `
-                                            <span class="px-2 py-1 bg-rose-500/20 text-rose-300 rounded text-xs">Potentiellement malveillante</span>
-                                            ${isVulnTest ? '<span class="px-2 py-1 bg-violet-500/20 text-violet-300 rounded text-xs">Test de vulnérabilité</span>' : ''}
-                                            ${detectAttackType(log)}
-                                        ` : `
-                                            <span class="px-2 py-1 bg-emerald-500/20 text-emerald-300 rounded text-xs">Aucune menace détectée</span>
-                                        `}
-                                    </div>
-                                </div>
-                            </div>
-                        </details>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function getMethodColor(method) {
-            const colors = {
-                'GET': 'bg-blue-500/20 text-blue-400',
-                'POST': 'bg-emerald-500/20 text-emerald-400',
-                'PUT': 'bg-amber-500/20 text-amber-400',
-                'DELETE': 'bg-rose-500/20 text-rose-400',
-                'PATCH': 'bg-violet-500/20 text-violet-400'
-            };
-            return colors[method] || 'bg-dark-600 text-dark-300';
-        }
-
         function clearLogs() {
-            if (confirm('Voulez-vous vraiment effacer tous les logs?')) {
-                logs = [];
-                updateLogsDisplay();
+            if (confirm('Voulez-vous vraiment effacer tous les logs ?')) {
+                fetch('/api/clear-logs', { method: 'POST' })
+                    .then(() => {
+                        logs = [];
+                        updateDisplay();
+                    });
             }
         }
 
-        function getCountryFlag(countryCode) {
-            if (!countryCode) return '🌍';
-            const codePoints = countryCode.toUpperCase().split('').map(char => 127397 + char.charCodeAt());
-            return String.fromCodePoint(...codePoints);
-        }
+        // Event listeners
+        document.getElementById('searchFilter').addEventListener('input', updateDisplay);
+        document.getElementById('methodFilter').addEventListener('change', updateDisplay);
+        document.getElementById('attackFilter').addEventListener('change', updateDisplay);
+        document.getElementById('limitFilter').addEventListener('change', updateDisplay);
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function parseUserAgent(ua) {
-            const badges = [];
-            if (ua.includes('Windows')) badges.push('<span class="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded text-xs">Windows</span>');
-            else if (ua.includes('Mac OS')) badges.push('<span class="px-2 py-0.5 bg-gray-500/20 text-gray-300 rounded text-xs">macOS</span>');
-            else if (ua.includes('Linux')) badges.push('<span class="px-2 py-0.5 bg-orange-500/20 text-orange-300 rounded text-xs">Linux</span>');
-            else if (ua.includes('Android')) badges.push('<span class="px-2 py-0.5 bg-green-500/20 text-green-300 rounded text-xs">Android</span>');
-            else if (ua.includes('iPhone') || ua.includes('iPad')) badges.push('<span class="px-2 py-0.5 bg-gray-500/20 text-gray-300 rounded text-xs">iOS</span>');
-            
-            if (ua.includes('Firefox')) badges.push('<span class="px-2 py-0.5 bg-orange-500/20 text-orange-300 rounded text-xs">Firefox</span>');
-            else if (ua.includes('Chrome') && !ua.includes('Edg')) badges.push('<span class="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded text-xs">Chrome</span>');
-            else if (ua.includes('Safari') && !ua.includes('Chrome')) badges.push('<span class="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded text-xs">Safari</span>');
-            else if (ua.includes('Edg')) badges.push('<span class="px-2 py-0.5 bg-cyan-500/20 text-cyan-300 rounded text-xs">Edge</span>');
-            
-            if (ua.includes('curl')) badges.push('<span class="px-2 py-0.5 bg-rose-500/20 text-rose-300 rounded text-xs">curl</span>');
-            if (ua.includes('Postman')) badges.push('<span class="px-2 py-0.5 bg-orange-500/20 text-orange-300 rounded text-xs">Postman</span>');
-            if (ua.includes('bot') || ua.includes('Bot')) badges.push('<span class="px-2 py-0.5 bg-violet-500/20 text-violet-300 rounded text-xs">Bot</span>');
-            if (ua.includes('python')) badges.push('<span class="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded text-xs">Python</span>');
-            
-            return badges.join('') || '<span class="px-2 py-0.5 bg-dark-600 text-dark-300 rounded text-xs">Inconnu</span>';
-        }
-
-        function detectAttackType(log) {
-            const testString = (log.url || '') + JSON.stringify(log.query || {}) + JSON.stringify(log.body || {});
-            const attacks = [];
-            
-            if (/(\.\.[\/\\]){2,}/.test(testString)) attacks.push('<span class="px-2 py-1 bg-amber-500/20 text-amber-300 rounded text-xs">Path Traversal</span>');
-            if (/<script[^>]*>/i.test(testString) || /javascript:/i.test(testString)) attacks.push('<span class="px-2 py-1 bg-pink-500/20 text-pink-300 rounded text-xs">XSS</span>');
-            if (/(union\s+select|or\s+1\s*=\s*1|'\s+or\s+')/i.test(testString)) attacks.push('<span class="px-2 py-1 bg-red-500/20 text-red-300 rounded text-xs">SQL Injection</span>');
-            if (/\{\s*['"]\$ne['"]\s*:/.test(testString)) attacks.push('<span class="px-2 py-1 bg-orange-500/20 text-orange-300 rounded text-xs">NoSQL Injection</span>');
-            if (/;\s*(cat|ls|wget|curl|bash|sh)\s+/i.test(testString) || /\|\s*(cat|ls|wget|curl|bash)\s+/i.test(testString)) attacks.push('<span class="px-2 py-1 bg-red-500/20 text-red-300 rounded text-xs">Command Injection</span>');
-            if (/<!DOCTYPE[^>]+ENTITY/i.test(testString)) attacks.push('<span class="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs">XXE</span>');
-            if (/\{\{.*\}\}/.test(testString)) attacks.push('<span class="px-2 py-1 bg-cyan-500/20 text-cyan-300 rounded text-xs">SSTI</span>');
-            if (/(file:\/\/\/|php:\/\/filter)/i.test(testString)) attacks.push('<span class="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-xs">LFI</span>');
-            
-            return attacks.join('');
-        }
-
-        // Event listeners for filters
-        document.getElementById('searchInput').addEventListener('input', updateLogsDisplay);
-        document.getElementById('methodFilter').addEventListener('change', updateLogsDisplay);
-        document.getElementById('suspiciousFilter').addEventListener('change', updateLogsDisplay);
-        document.getElementById('logTypeFilter').addEventListener('change', updateLogsDisplay);
-        document.getElementById('testStatusFilter').addEventListener('change', updateLogsDisplay);
-        document.getElementById('limitFilter').addEventListener('change', updateLogsDisplay);
-
-        loadInitialLogs();
+        // Initialize
+        loadLogs();
         connectWebSocket();
     </script>
 </body>
