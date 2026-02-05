@@ -30,7 +30,19 @@
             <h1 class="text-4xl font-bold text-white mb-4">
                 <i class="fas fa-shield-virus text-red-400"></i> Tests de Vulnérabilités
             </h1>
-            <p class="text-gray-300">Testez différents types d'attaques web</p>
+            <p class="text-gray-300">Testez différents types d'attaques web depuis l'extérieur</p>
+            <div class="mt-4 bg-blue-900 border border-blue-600 rounded-lg p-4">
+                <div class="flex items-start">
+                    <i class="fas fa-info-circle text-blue-300 text-2xl mr-3 mt-1"></i>
+                    <div class="text-blue-200">
+                        <p class="font-semibold mb-2">Ces tests doivent être exécutés depuis l'extérieur</p>
+                        <p class="text-sm">
+                            Pour tester votre WAF correctement, utilisez les commandes curl ci-dessous depuis votre terminal ou un autre serveur.
+                            Le header <code class="bg-blue-800 px-1 rounded">X-Real-IP</code> sera utilisé pour identifier l'IP réelle.
+                        </p>
+                    </div>
+                </div>
+            </div>
             <div class="mt-4 bg-red-900 border border-red-600 rounded-lg p-4">
                 <p class="text-red-200">
                     <i class="fas fa-exclamation-triangle mr-2"></i>
@@ -56,19 +68,27 @@
                         <span class="px-3 py-1 bg-red-900 text-red-300 rounded-full text-xs font-semibold">GET</span>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-2">
+                    <div class="space-y-3">
+                        <div>
                             <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload</label>
-                            <input type="text" id="sqli-input" placeholder="admin' OR '1'='1" 
+                            <input type="text" id="sqli-input" value="admin' OR '1'='1" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-red-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div class="flex items-end">
-                            <button onclick="testSQLi()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
-                                <i class="fas fa-play mr-2"></i>Lancer
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
+                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
+                                <code id="sqli-curl" class="text-green-400 text-xs break-all select-all"></code>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="copyCurl('sqli-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copier
+                            </button>
+                            <button onclick="generateCurl('sqli')" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-sync mr-2"></i>Générer
                             </button>
                         </div>
                     </div>
-                    <div id="sqli-result" class="hidden"></div>
                 </div>
             </div>
 
@@ -88,19 +108,27 @@
                         <span class="px-3 py-1 bg-orange-900 text-orange-300 rounded-full text-xs font-semibold">GET</span>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-2">
+                    <div class="space-y-3">
+                        <div>
                             <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload</label>
-                            <input type="text" id="xss-input" placeholder="<script>alert('XSS')</script>" 
+                            <input type="text" id="xss-input" value="<script>alert('XSS')</script>" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-orange-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div class="flex items-end">
-                            <button onclick="testXSS()" class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
-                                <i class="fas fa-play mr-2"></i>Lancer
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
+                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
+                                <code id="xss-curl" class="text-green-400 text-xs break-all select-all"></code>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="copyCurl('xss-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copier
+                            </button>
+                            <button onclick="generateCurl('xss')" class="flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-sync mr-2"></i>Générer
                             </button>
                         </div>
                     </div>
-                    <div id="xss-result" class="hidden"></div>
                 </div>
             </div>
 
@@ -120,19 +148,27 @@
                         <span class="px-3 py-1 bg-yellow-900 text-yellow-300 rounded-full text-xs font-semibold">GET</span>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-2">
+                    <div class="space-y-3">
+                        <div>
                             <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload</label>
-                            <input type="text" id="path-input" placeholder="../../../etc/passwd" 
+                            <input type="text" id="path-input" value="../../../etc/passwd" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-yellow-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div class="flex items-end">
-                            <button onclick="testPathTraversal()" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
-                                <i class="fas fa-play mr-2"></i>Lancer
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
+                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
+                                <code id="path-curl" class="text-green-400 text-xs break-all select-all"></code>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="copyCurl('path-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copier
+                            </button>
+                            <button onclick="generateCurl('path')" class="flex-1 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-sync mr-2"></i>Générer
                             </button>
                         </div>
                     </div>
-                    <div id="path-result" class="hidden"></div>
                 </div>
             </div>
 
@@ -152,19 +188,27 @@
                         <span class="px-3 py-1 bg-green-900 text-green-300 rounded-full text-xs font-semibold">GET</span>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-2">
+                    <div class="space-y-3">
+                        <div>
                             <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload</label>
-                            <input type="text" id="cmd-input" placeholder="localhost; cat /etc/passwd" 
+                            <input type="text" id="cmd-input" value="localhost; cat /etc/passwd" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-green-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div class="flex items-end">
-                            <button onclick="testCommandInjection()" class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
-                                <i class="fas fa-play mr-2"></i>Lancer
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
+                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
+                                <code id="cmd-curl" class="text-green-400 text-xs break-all select-all"></code>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="copyCurl('cmd-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copier
+                            </button>
+                            <button onclick="generateCurl('cmd')" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-sync mr-2"></i>Générer
                             </button>
                         </div>
                     </div>
-                    <div id="cmd-result" class="hidden"></div>
                 </div>
             </div>
 
@@ -184,19 +228,27 @@
                         <span class="px-3 py-1 bg-blue-900 text-blue-300 rounded-full text-xs font-semibold">GET</span>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-2">
+                    <div class="space-y-3">
+                        <div>
                             <label class="block text-gray-400 text-sm mb-2 font-semibold">URL cible</label>
-                            <input type="text" id="ssrf-input" placeholder="http://localhost:22" 
+                            <input type="text" id="ssrf-input" value="http://localhost:22" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-blue-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div class="flex items-end">
-                            <button onclick="testSSRF()" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
-                                <i class="fas fa-play mr-2"></i>Lancer
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
+                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
+                                <code id="ssrf-curl" class="text-green-400 text-xs break-all select-all"></code>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="copyCurl('ssrf-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copier
+                            </button>
+                            <button onclick="generateCurl('ssrf')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-sync mr-2"></i>Générer
                             </button>
                         </div>
                     </div>
-                    <div id="ssrf-result" class="hidden"></div>
                 </div>
             </div>
 
@@ -216,19 +268,27 @@
                         <span class="px-3 py-1 bg-purple-900 text-purple-300 rounded-full text-xs font-semibold">POST</span>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-2">
+                    <div class="space-y-3">
+                        <div>
                             <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload JSON</label>
-                            <input type="text" id="nosqli-input" placeholder='{"$ne": null}' 
+                            <input type="text" id="nosqli-input" value='{"$ne": null}' 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-purple-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div class="flex items-end">
-                            <button onclick="testNoSQLi()" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
-                                <i class="fas fa-play mr-2"></i>Lancer
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
+                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
+                                <code id="nosqli-curl" class="text-green-400 text-xs break-all select-all"></code>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="copyCurl('nosqli-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copier
+                            </button>
+                            <button onclick="generateCurl('nosqli')" class="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-sync mr-2"></i>Générer
                             </button>
                         </div>
                     </div>
-                    <div id="nosqli-result" class="hidden"></div>
                 </div>
             </div>
 
@@ -248,19 +308,27 @@
                         <span class="px-3 py-1 bg-pink-900 text-pink-300 rounded-full text-xs font-semibold">GET</span>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-2">
+                    <div class="space-y-3">
+                        <div>
                             <label class="block text-gray-400 text-sm mb-2 font-semibold">Chemin du fichier</label>
-                            <input type="text" id="lfi-input" placeholder="/etc/passwd" 
+                            <input type="text" id="lfi-input" value="/etc/passwd" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-pink-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div class="flex items-end">
-                            <button onclick="testLFI()" class="w-full bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
-                                <i class="fas fa-play mr-2"></i>Lancer
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
+                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
+                                <code id="lfi-curl" class="text-green-400 text-xs break-all select-all"></code>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="copyCurl('lfi-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copier
+                            </button>
+                            <button onclick="generateCurl('lfi')" class="flex-1 bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-sync mr-2"></i>Générer
                             </button>
                         </div>
                     </div>
-                    <div id="lfi-result" class="hidden"></div>
                 </div>
             </div>
 
@@ -280,19 +348,27 @@
                         <span class="px-3 py-1 bg-red-900 text-red-300 rounded-full text-xs font-semibold">GET</span>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-2">
+                    <div class="space-y-3">
+                        <div>
                             <label class="block text-gray-400 text-sm mb-2 font-semibold">URL de redirection</label>
-                            <input type="text" id="redirect-input" placeholder="https://evil.com" 
+                            <input type="text" id="redirect-input" value="https://evil.com" 
                                 class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-red-500 focus:outline-none transition-all font-mono">
                         </div>
-                        <div class="flex items-end">
-                            <button onclick="testOpenRedirect()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
-                                <i class="fas fa-play mr-2"></i>Lancer
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
+                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
+                                <code id="redirect-curl" class="text-green-400 text-xs break-all select-all"></code>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="copyCurl('redirect-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copier
+                            </button>
+                            <button onclick="generateCurl('redirect')" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-sync mr-2"></i>Générer
                             </button>
                         </div>
                     </div>
-                    <div id="redirect-result" class="hidden"></div>
                 </div>
             </div>
 
@@ -312,17 +388,26 @@
                         <span class="px-3 py-1 bg-orange-900 text-orange-300 rounded-full text-xs font-semibold">POST</span>
                     </div>
                     
-                    <div class="space-y-4">
+                    <div class="space-y-3">
                         <div>
                             <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload XML</label>
-                            <textarea id="xxe-input" rows="4" placeholder='<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>' 
-                                class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-orange-500 focus:outline-none transition-all font-mono"></textarea>
+                            <textarea id="xxe-input" rows="4" class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-orange-500 focus:outline-none transition-all font-mono"><?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo></textarea>
                         </div>
-                        <button onclick="testXXE()" class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
-                            <i class="fas fa-play mr-2"></i>Lancer le Test
-                        </button>
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Commande curl</label>
+                            <div class="bg-gray-950 p-4 rounded-lg border border-gray-700">
+                                <code id="xxe-curl" class="text-green-400 text-xs break-all select-all"></code>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="copyCurl('xxe-curl')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copier
+                            </button>
+                            <button onclick="generateCurl('xxe')" class="flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-4 py-3 rounded-lg font-semibold transition-all">
+                                <i class="fas fa-sync mr-2"></i>Générer
+                            </button>
+                        </div>
                     </div>
-                    <div id="xxe-result" class="hidden"></div>
                 </div>
             </div>
         </div>
@@ -365,6 +450,125 @@
                 </div>
             `;
         }
+
+        // === GÉNÉRATION DES COMMANDES CURL ===
+        const serverUrl = window.location.origin;
+
+        function generateCurl(type) {
+            let curl = '';
+            let payload = '';
+            
+            switch(type) {
+                case 'sqli':
+                    payload = document.getElementById('sqli-input').value;
+                    curl = `curl -X GET "${serverUrl}/vuln/sqli?username=${encodeURIComponent(payload)}" \\
+  -H "X-Real-IP: YOUR_IP" \\
+  -H "X-Vuln-Type: sqli"`;
+                    document.getElementById('sqli-curl').textContent = curl;
+                    break;
+                    
+                case 'xss':
+                    payload = document.getElementById('xss-input').value;
+                    curl = `curl -X GET "${serverUrl}/vuln/xss?name=${encodeURIComponent(payload)}" \\
+  -H "X-Real-IP: YOUR_IP" \\
+  -H "X-Vuln-Type: xss"`;
+                    document.getElementById('xss-curl').textContent = curl;
+                    break;
+                    
+                case 'path':
+                    payload = document.getElementById('path-input').value;
+                    curl = `curl -X GET "${serverUrl}/vuln/path-traversal?file=${encodeURIComponent(payload)}" \\
+  -H "X-Real-IP: YOUR_IP" \\
+  -H "X-Vuln-Type: path-traversal"`;
+                    document.getElementById('path-curl').textContent = curl;
+                    break;
+                    
+                case 'cmd':
+                    payload = document.getElementById('cmd-input').value;
+                    curl = `curl -X GET "${serverUrl}/vuln/command-injection?host=${encodeURIComponent(payload)}" \\
+  -H "X-Real-IP: YOUR_IP" \\
+  -H "X-Vuln-Type: command-injection"`;
+                    document.getElementById('cmd-curl').textContent = curl;
+                    break;
+                    
+                case 'ssrf':
+                    payload = document.getElementById('ssrf-input').value;
+                    curl = `curl -X GET "${serverUrl}/vuln/ssrf?url=${encodeURIComponent(payload)}" \\
+  -H "X-Real-IP: YOUR_IP" \\
+  -H "X-Vuln-Type: ssrf"`;
+                    document.getElementById('ssrf-curl').textContent = curl;
+                    break;
+                    
+                case 'nosqli':
+                    payload = document.getElementById('nosqli-input').value;
+                    curl = `curl -X POST "${serverUrl}/vuln/nosqli" \\
+  -H "Content-Type: application/json" \\
+  -H "X-Real-IP: YOUR_IP" \\
+  -H "X-Vuln-Type: nosqli" \\
+  -d '{"username": ${payload}, "password": ${payload}}'`;
+                    document.getElementById('nosqli-curl').textContent = curl;
+                    break;
+                    
+                case 'lfi':
+                    payload = document.getElementById('lfi-input').value;
+                    curl = `curl -X GET "${serverUrl}/vuln/lfi?page=${encodeURIComponent(payload)}" \\
+  -H "X-Real-IP: YOUR_IP" \\
+  -H "X-Vuln-Type: lfi"`;
+                    document.getElementById('lfi-curl').textContent = curl;
+                    break;
+                    
+                case 'redirect':
+                    payload = document.getElementById('redirect-input').value;
+                    curl = `curl -X GET "${serverUrl}/vuln/open-redirect?url=${encodeURIComponent(payload)}" \\
+  -H "X-Real-IP: YOUR_IP" \\
+  -H "X-Vuln-Type: open-redirect" \\
+  -L`;
+                    document.getElementById('redirect-curl').textContent = curl;
+                    break;
+                    
+                case 'xxe':
+                    payload = document.getElementById('xxe-input').value;
+                    curl = `curl -X POST "${serverUrl}/vuln/xxe" \\
+  -H "Content-Type: application/xml" \\
+  -H "X-Real-IP: YOUR_IP" \\
+  -H "X-Vuln-Type: xxe" \\
+  -d '${payload.replace(/'/g, "'\\''")}'`;
+                    document.getElementById('xxe-curl').textContent = curl;
+                    break;
+            }
+        }
+
+        function copyCurl(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            const btn = event.target.closest('button');
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check mr-2"></i>Copié!';
+                btn.classList.remove('bg-gray-700');
+                btn.classList.add('bg-green-600');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('bg-green-600');
+                    btn.classList.add('bg-gray-700');
+                }, 2000);
+            });
+        }
+
+        // Générer toutes les commandes curl au chargement
+        document.addEventListener('DOMContentLoaded', () => {
+            const types = ['sqli', 'xss', 'path', 'cmd', 'ssrf', 'nosqli', 'lfi', 'redirect', 'xxe'];
+            types.forEach(type => generateCurl(type));
+            
+            // Régénérer quand l'input change
+            document.querySelectorAll('input, textarea').forEach(input => {
+                input.addEventListener('input', () => {
+                    const type = input.id.split('-')[0];
+                    if (types.includes(type)) {
+                        generateCurl(type);
+                    }
+                });
+            });
+        });
 
         function showLoading(elementId) {
             const element = document.getElementById(elementId);

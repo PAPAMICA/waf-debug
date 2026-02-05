@@ -39,11 +39,18 @@ npm start
 ## 📋 Fonctionnalités
 
 ### Interface Web
-- 🏠 **Page d'accueil** : Vue d'ensemble du serveur
-- 📊 **Logs en direct** : Surveillance temps réel des requêtes avec WebSocket
+- 🏠 **Page d'accueil** : Vue d'ensemble avec logs en direct intégrés
+- 📊 **Logs en direct** : Surveillance temps réel des requêtes avec WebSocket et détails complets
 - 📈 **Statistiques** : Analytics et graphiques des tests
 - 🐛 **Debug** : Inspection détaillée des requêtes HTTP
-- 🧪 **Tests** : Interface pour tester les vulnérabilités
+- 🧪 **Tests** : Génération de commandes curl pour tests externes
+
+### Fonctionnalités Avancées
+- 🌍 **Géolocalisation IP** : Détection automatique du pays via X-Real-IP
+- 🔍 **Détection d'attaques** : Reconnaissance automatique des patterns suspects
+- 🚨 **Alertes visuelles** : Affichage en rouge des requêtes suspectes
+- 📝 **Headers formatés** : Affichage structuré et lisible des headers HTTP
+- 🎯 **Tests externes** : Commandes curl prêtes à l'emploi pour tests depuis l'extérieur
 
 ### Vulnérabilités Disponibles
 
@@ -73,7 +80,8 @@ Le serveur expose 19 types de vulnérabilités pour les tests :
 
 - **Backend** : Node.js + Express
 - **Base de données** : SQLite (en mémoire)
-- **WebSocket** : ws
+- **WebSocket** : ws (logs temps réel)
+- **Géolocalisation** : geoip-lite
 - **Frontend** : HTML5 + Tailwind CSS + JavaScript
 - **Graphiques** : Chart.js
 - **Conteneurisation** : Docker
@@ -113,7 +121,7 @@ waf-debug/
 
 ### API de monitoring
 
-- `GET /api/logs` : Récupère les logs des requêtes
+- `GET /api/logs` : Récupère les logs des requêtes (avec IP réelle et géolocalisation)
 - `GET /api/stats` : Récupère les statistiques
 - `WS /` : WebSocket pour logs en temps réel
 
@@ -121,25 +129,38 @@ waf-debug/
 
 Tous les endpoints sous `/vuln/*` sont intentionnellement vulnérables pour les tests.
 
+**Headers importants** :
+- `X-Real-IP` : IP réelle du client (utilisée pour la géolocalisation)
+- `X-Vuln-Type` : Type de vulnérabilité testée (pour les statistiques)
+- `X-Forwarded-For` : Fallback si X-Real-IP n'est pas présent
+
 ## 💡 Exemples d'utilisation
 
-### Test SQL Injection
+### Test SQL Injection depuis l'extérieur
 
 ```bash
-curl "http://localhost/vuln/sqli?username=admin' OR '1'='1"
+curl -X GET "http://YOUR_SERVER/vuln/sqli?username=admin'%20OR%20'1'%3D'1" \
+  -H "X-Real-IP: YOUR_IP" \
+  -H "X-Vuln-Type: sqli"
 ```
 
 ### Test XSS
 
 ```bash
-curl "http://localhost/vuln/xss?name=<script>alert('XSS')</script>"
+curl -X GET "http://YOUR_SERVER/vuln/xss?name=%3Cscript%3Ealert('XSS')%3C%2Fscript%3E" \
+  -H "X-Real-IP: YOUR_IP" \
+  -H "X-Vuln-Type: xss"
 ```
 
 ### Test Command Injection
 
 ```bash
-curl "http://localhost/vuln/command-injection?host=localhost; cat /etc/passwd"
+curl -X GET "http://YOUR_SERVER/vuln/command-injection?host=localhost%3B%20cat%20%2Fetc%2Fpasswd" \
+  -H "X-Real-IP: YOUR_IP" \
+  -H "X-Vuln-Type: command-injection"
 ```
+
+**Note importante** : Le header `X-Real-IP` est utilisé pour identifier l'IP réelle du client et effectuer la géolocalisation.
 
 ## 🎨 Interface Utilisateur
 

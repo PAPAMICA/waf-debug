@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const xml2js = require('xml2js');
+const geoip = require('geoip-lite');
 
 const app = express();
 const server = http.createServer(app);
@@ -60,8 +61,60 @@ function broadcastLog(logEntry) {
   });
 }
 
+// Fonction de détection d'attaque
+function detectAttack(req) {
+  const suspiciousPatterns = [
+    /(\.\.[\/\\]|\.\.%2[fF])/,  // Path traversal
+    /(<script|javascript:|onerror=|onload=)/i,  // XSS
+    /(union|select|insert|update|delete|drop|create|alter|exec|script|char|nchar|varchar)/i,  // SQL Injection
+    /(sleep\(|benchmark\(|waitfor delay)/i,  // SQL Time-based
+    /(\$ne|\$gt|\$lt|\$or|\$and)/,  // NoSQL Injection
+    /(\||;|&|\n|\r|`|\$\()/,  // Command Injection
+    /(file:\/\/|php:\/\/|data:)/i,  // File inclusion
+    /(<\?xml|<!DOCTYPE|<!ENTITY)/i,  // XXE
+    /(\{\{|\}\}|<%|%>)/,  // Template Injection
+    /(eval\(|exec\(|system\()/i,  // Code Injection
+  ];
+  
+  const testString = JSON.stringify({
+    url: req.url,
+    query: req.query,
+    body: req.body,
+    headers: req.headers
+  });
+  
+  return suspiciousPatterns.some(pattern => pattern.test(testString));
+}
+
 // Middleware de logging
 app.use((req, res, next) => {
+  // Extraire l'IP réelle
+  const realIp = req.headers['x-real-ip'] || 
+                 req.headers['x-forwarded-for']?.split(',')[0] || 
+                 req.ip || 
+                 req.connection.remoteAddress;
+  
+  // Nettoyer l'IP (retirer ::ffff: si présent)
+  const cleanIp = realIp.replace(/^::ffff:/, '');
+  
+  // Géolocalisation
+  let geoData = null;
+  if (cleanIp && cleanIp !== '127.0.0.1' && cleanIp !== 'localhost') {
+    const geo = geoip.lookup(cleanIp);
+    if (geo) {
+      geoData = {
+        country: geo.country,
+        region: geo.region,
+        city: geo.city,
+        ll: geo.ll,
+        timezone: geo.timezone
+      };
+    }
+  }
+  
+  // Détection d'attaque
+  const isSuspicious = detectAttack(req);
+  
   const logEntry = {
     timestamp: new Date().toISOString(),
     method: req.method,
@@ -70,7 +123,10 @@ app.use((req, res, next) => {
     query: req.query,
     body: req.body,
     cookies: req.cookies,
-    ip: req.ip || req.connection.remoteAddress
+    ip: req.ip || req.connection.remoteAddress,
+    realIp: cleanIp,
+    geo: geoData,
+    suspicious: isSuspicious
   };
   
   requestLogs.unshift(logEntry);
