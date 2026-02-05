@@ -120,9 +120,11 @@
             
             ws.onmessage = (event) => {
                 const log = JSON.parse(event.data);
-                logs.unshift(log);
-                if (logs.length > 20) logs.pop(); // Garder seulement les 20 derniers
-                updateLiveLogsDisplay();
+                if (shouldDisplayLog(log)) {
+                    logs.unshift(log);
+                    if (logs.length > 20) logs.pop(); // Garder seulement les 20 derniers
+                    updateLiveLogsDisplay();
+                }
             };
             
             ws.onclose = () => {
@@ -132,20 +134,65 @@
             };
         }
 
+        function shouldDisplayLog(log) {
+            // Filtrer les pages internes
+            const internalPaths = ['/api/', '/logs', '/stats', '/debug', '/tests', '/tests.js', '/', '/index.html'];
+            const url = log.url || '';
+            
+            // Exclure les fichiers statiques et pages internes
+            if (url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|map|html)$/)) {
+                return false;
+            }
+            
+            // Exclure les pages internes exactes
+            for (const path of internalPaths) {
+                if (url === path || url.startsWith(path + '?')) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        function detectAttackFromLog(log) {
+            const url = log.url || '';
+            const query = JSON.stringify(log.query || {});
+            const body = JSON.stringify(log.body || {});
+            const testString = url + query + body;
+            
+            // Patterns de détection
+            const patterns = [
+                /(\.\.[\/\\]){2,}/,  // Path traversal
+                /<script[^>]*>/i,  // XSS script
+                /javascript:/i,  // XSS javascript
+                /on(error|load|click|focus)\s*=/i,  // XSS events
+                /(union\s+select|or\s+1\s*=\s*1|'\s+or\s+')/i,  // SQL Injection
+                /\{\s*['"]\$ne['"]\s*:/,  // NoSQL
+                /;\s*(cat|ls|wget|curl|bash|sh)\s+/i,  // Command Injection
+                /\|\s*(cat|ls|wget|curl|bash)\s+/i,  // Command Injection pipe
+                /<!DOCTYPE[^>]+ENTITY/i,  // XXE
+                /\{\{.*\}\}/,  // Template Injection
+                /(file:\/\/\/|php:\/\/filter)/i,  // File Inclusion
+            ];
+            
+            return patterns.some(pattern => pattern.test(testString));
+        }
+
         function loadInitialLogs() {
             fetch('/api/logs')
                 .then(res => res.json())
                 .then(data => {
-                    logs = data.slice(0, 20);
+                    logs = data.filter(shouldDisplayLog).slice(0, 20);
                     updateLiveLogsDisplay();
                 });
         }
 
         function updateLiveLogsDisplay() {
-            document.getElementById('totalLogs').textContent = logs.length;
+            const filteredLogs = logs.filter(shouldDisplayLog);
+            document.getElementById('totalLogs').textContent = filteredLogs.length;
             
             const container = document.getElementById('liveLogsContainer');
-            if (logs.length === 0) {
+            if (filteredLogs.length === 0) {
                 container.innerHTML = `
                     <div class="text-center text-gray-400 py-8">
                         <i class="fas fa-satellite-dish text-4xl mb-3"></i>
@@ -155,112 +202,150 @@
                 return;
             }
 
-            container.innerHTML = logs.map(log => {
+            container.innerHTML = filteredLogs.map(log => {
                 const timestamp = new Date(log.timestamp);
                 const vulnType = log.headers['x-vuln-type'] || 'unknown';
                 const isVulnTest = log.url.includes('/vuln/');
-                const isSuspicious = log.suspicious || isVulnTest;
+                const isSuspicious = detectAttackFromLog(log) || isVulnTest;
                 const realIp = log.realIp || log.ip;
                 const geoInfo = log.geo;
                 
                 return `
-                    <div class="bg-gray-900 rounded-lg p-3 border ${isSuspicious ? 'border-red-500 bg-red-900 bg-opacity-10' : 'border-gray-700'} hover:border-purple-400 transition-all">
-                        <!-- En-tête compacte sur une ligne -->
-                        <div class="flex items-center justify-between gap-3 mb-2">
-                            <div class="flex items-center gap-2 flex-1 min-w-0">
-                                <span class="px-2 py-0.5 rounded ${getMethodColor(log.method)} font-bold text-xs flex-shrink-0">
-                                    ${log.method}
+                    <div class="bg-gray-900 rounded-lg border-l-4 ${isSuspicious ? 'border-l-red-500 bg-red-900 bg-opacity-20' : 'border-l-blue-500'} hover:shadow-lg transition-all">
+                        <div class="p-3">
+                            <!-- En-tête -->
+                            <div class="flex items-center justify-between gap-3 mb-3">
+                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                    <span class="px-2.5 py-1 rounded ${getMethodColor(log.method)} font-bold text-xs flex-shrink-0">
+                                        ${log.method}
+                                    </span>
+                                    <span class="text-purple-300 font-mono text-sm truncate flex-1" title="${log.url}">${log.url}</span>
+                                    ${isSuspicious ? '<span class="px-2 py-1 bg-red-600 text-white rounded-full text-xs font-bold animate-pulse flex-shrink-0"><i class="fas fa-exclamation-triangle mr-1"></i>ATTAQUE</span>' : ''}
+                                </div>
+                                <span class="text-gray-400 text-xs whitespace-nowrap flex-shrink-0 font-mono">
+                                    ${timestamp.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit', second: '2-digit'})}
                                 </span>
-                                <span class="text-purple-400 font-mono text-xs truncate flex-1" title="${log.url}">${log.url}</span>
-                                ${isSuspicious ? '<span class="px-2 py-0.5 bg-red-600 text-white rounded text-xs font-semibold animate-pulse flex-shrink-0">⚠️</span>' : ''}
-                            </div>
-                            <span class="text-gray-500 text-xs whitespace-nowrap flex-shrink-0">
-                                ${timestamp.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit', second: '2-digit'})}
-                            </span>
-                        </div>
-                        
-                        <!-- Infos principales en ligne compacte -->
-                        <div class="flex flex-wrap items-center gap-2 text-xs mb-2">
-                            <div class="flex items-center gap-1.5 bg-gray-800 rounded px-2 py-1">
-                                <i class="fas fa-map-marker-alt text-blue-400 text-xs"></i>
-                                <span class="text-white font-mono">${realIp}</span>
-                                ${geoInfo ? `<span class="px-1.5 py-0.5 rounded text-sm" title="${geoInfo.city || ''}, ${geoInfo.region || ''}">${getCountryFlag(geoInfo.country)} ${geoInfo.country}</span>` : ''}
                             </div>
                             
-                            ${vulnType !== 'unknown' ? `
-                                <div class="flex items-center gap-1 bg-red-900 rounded px-2 py-1">
-                                    <i class="fas fa-bug text-red-400 text-xs"></i>
-                                    <span class="text-red-200 font-semibold">${vulnType}</span>
-                                </div>
-                            ` : ''}
-                            
-                            <div class="flex items-center gap-1 bg-gray-800 rounded px-2 py-1">
-                                <i class="fas fa-globe text-gray-400 text-xs"></i>
-                                <span class="text-white truncate max-w-[150px]" title="${log.headers['host'] || 'N/A'}">${log.headers['host'] || 'N/A'}</span>
-                            </div>
-                            
-                            ${log.headers['content-type'] ? `
-                                <div class="flex items-center gap-1 bg-gray-800 rounded px-2 py-1">
-                                    <i class="fas fa-file-code text-gray-400 text-xs"></i>
-                                    <span class="text-white">${log.headers['content-type'].split(';')[0]}</span>
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        <!-- Détails dépliables compacts -->
-                        <details class="bg-gray-800 rounded mt-2">
-                            <summary class="cursor-pointer px-2 py-1 text-purple-400 font-semibold text-xs hover:bg-gray-700 rounded flex items-center gap-2">
-                                <i class="fas fa-chevron-right text-xs transform transition-transform"></i>
-                                <span>Détails complets</span>
-                                <span class="text-gray-500">(${Object.keys(log.query).length + Object.keys(log.cookies).length + Object.keys(log.headers).length} éléments)</span>
-                            </summary>
-                            <div class="p-2 border-t border-gray-700 space-y-2 text-xs">
-                                <!-- User Agent -->
-                                <div class="bg-gray-900 rounded p-2">
-                                    <div class="text-cyan-400 font-semibold mb-1">
-                                        <i class="fas fa-desktop mr-1"></i>User-Agent
+                            <!-- Grid d'infos -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                <div class="bg-gray-800 rounded px-3 py-2">
+                                    <div class="text-gray-400 mb-0.5">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>IP
                                     </div>
-                                    <div class="text-gray-300 break-all">${log.headers['user-agent'] || 'N/A'}</div>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-white font-mono">${realIp}</span>
+                                        ${geoInfo ? `<span class="text-base" title="${geoInfo.city || ''}, ${geoInfo.region || ''}">${getCountryFlag(geoInfo.country)}</span>` : ''}
+                                    </div>
                                 </div>
                                 
-                                ${Object.keys(log.query).length > 0 ? `
-                                    <div class="bg-gray-900 rounded p-2">
-                                        <div class="text-yellow-400 font-semibold mb-1">
-                                            <i class="fas fa-question-circle mr-1"></i>Query (${Object.keys(log.query).length})
+                                ${geoInfo && geoInfo.country ? `
+                                    <div class="bg-gray-800 rounded px-3 py-2">
+                                        <div class="text-gray-400 mb-0.5">
+                                            <i class="fas fa-flag mr-1"></i>Pays
                                         </div>
-                                        <pre class="text-gray-300 overflow-x-auto">${JSON.stringify(log.query, null, 2)}</pre>
+                                        <div class="text-white font-semibold">${geoInfo.country}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${vulnType !== 'unknown' ? `
+                                    <div class="bg-red-900 bg-opacity-50 rounded px-3 py-2">
+                                        <div class="text-red-300 mb-0.5">
+                                            <i class="fas fa-bug mr-1"></i>Type
+                                        </div>
+                                        <div class="text-red-100 font-semibold">${vulnType}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${Object.keys(log.query).length > 0 ? `
+                                    <div class="bg-yellow-900 bg-opacity-30 rounded px-3 py-2">
+                                        <div class="text-yellow-300 mb-0.5">
+                                            <i class="fas fa-question-circle mr-1"></i>Query
+                                        </div>
+                                        <div class="text-yellow-100 font-semibold">${Object.keys(log.query).length} param(s)</div>
                                     </div>
                                 ` : ''}
                                 
                                 ${log.body && Object.keys(log.body).length > 0 ? `
-                                    <div class="bg-gray-900 rounded p-2">
-                                        <div class="text-green-400 font-semibold mb-1">
-                                            <i class="fas fa-file-alt mr-1"></i>Body (${Object.keys(log.body).length})
+                                    <div class="bg-green-900 bg-opacity-30 rounded px-3 py-2">
+                                        <div class="text-green-300 mb-0.5">
+                                            <i class="fas fa-file-alt mr-1"></i>Body
                                         </div>
-                                        <pre class="text-gray-300 overflow-x-auto">${JSON.stringify(log.body, null, 2)}</pre>
+                                        <div class="text-green-100 font-semibold">${Object.keys(log.body).length} champ(s)</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        
+                        </div>
+                        
+                        <!-- Détails dépliables -->
+                        <details class="mt-2">
+                            <summary class="cursor-pointer px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded text-purple-400 font-semibold text-xs flex items-center gap-2 transition-all">
+                                <i class="fas fa-chevron-right text-xs transform transition-transform"></i>
+                                <i class="fas fa-info-circle"></i>
+                                <span>Voir les détails</span>
+                            </summary>
+                            <div class="mt-2 p-3 bg-gray-800 rounded space-y-2 text-xs">
+                                <!-- User Agent -->
+                                <div class="bg-gray-900 rounded p-2 border-l-2 border-cyan-500">
+                                    <div class="text-cyan-400 font-semibold mb-1 flex items-center">
+                                        <i class="fas fa-desktop mr-1.5"></i>User-Agent
+                                    </div>
+                                    <div class="text-gray-300 break-all font-mono">${log.headers['user-agent'] || 'N/A'}</div>
+                                </div>
+                                
+                                ${Object.keys(log.query).length > 0 ? `
+                                    <div class="bg-gray-900 rounded p-2 border-l-2 border-yellow-500">
+                                        <div class="text-yellow-400 font-semibold mb-1 flex items-center">
+                                            <i class="fas fa-question-circle mr-1.5"></i>Query Parameters (${Object.keys(log.query).length})
+                                        </div>
+                                        <div class="bg-gray-950 p-2 rounded">
+                                            <pre class="text-yellow-200 overflow-x-auto font-mono">${JSON.stringify(log.query, null, 2)}</pre>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${log.body && Object.keys(log.body).length > 0 ? `
+                                    <div class="bg-gray-900 rounded p-2 border-l-2 border-green-500">
+                                        <div class="text-green-400 font-semibold mb-1 flex items-center">
+                                            <i class="fas fa-file-alt mr-1.5"></i>Request Body (${Object.keys(log.body).length} champ${Object.keys(log.body).length > 1 ? 's' : ''})
+                                        </div>
+                                        <div class="bg-gray-950 p-2 rounded">
+                                            <pre class="text-green-200 overflow-x-auto font-mono">${JSON.stringify(log.body, null, 2)}</pre>
+                                        </div>
                                     </div>
                                 ` : ''}
                                 
                                 ${Object.keys(log.cookies).length > 0 ? `
-                                    <div class="bg-gray-900 rounded p-2">
-                                        <div class="text-orange-400 font-semibold mb-1">
-                                            <i class="fas fa-cookie-bite mr-1"></i>Cookies (${Object.keys(log.cookies).length})
+                                    <div class="bg-gray-900 rounded p-2 border-l-2 border-orange-500">
+                                        <div class="text-orange-400 font-semibold mb-1 flex items-center">
+                                            <i class="fas fa-cookie-bite mr-1.5"></i>Cookies (${Object.keys(log.cookies).length})
                                         </div>
-                                        <pre class="text-gray-300 overflow-x-auto">${JSON.stringify(log.cookies, null, 2)}</pre>
+                                        <div class="bg-gray-950 p-2 rounded">
+                                            <pre class="text-orange-200 overflow-x-auto font-mono">${JSON.stringify(log.cookies, null, 2)}</pre>
+                                        </div>
                                     </div>
                                 ` : ''}
                                 
-                                <div class="bg-gray-900 rounded p-2">
-                                    <div class="text-purple-400 font-semibold mb-1">
-                                        <i class="fas fa-list mr-1"></i>Headers (${Object.keys(log.headers).length})
+                                <div class="bg-gray-900 rounded p-2 border-l-2 border-purple-500">
+                                    <div class="text-purple-400 font-semibold mb-2 flex items-center">
+                                        <i class="fas fa-list mr-1.5"></i>Headers HTTP (${Object.keys(log.headers).length})
                                     </div>
-                                    <div class="space-y-1">
-                                        ${Object.entries(log.headers).map(([key, value]) => `
-                                            <div class="flex border-b border-gray-800 pb-1">
-                                                <div class="w-1/3 text-cyan-400 font-semibold">${key}:</div>
-                                                <div class="w-2/3 text-gray-300 break-all font-mono">${value}</div>
+                                    <div class="bg-gray-950 p-2 rounded space-y-1.5">
+                                        ${Object.entries(log.headers)
+                                            .filter(([key]) => !key.startsWith(':'))
+                                            .slice(0, 10)
+                                            .map(([key, value]) => `
+                                            <div class="flex gap-2 border-b border-gray-800 pb-1 last:border-0">
+                                                <div class="text-cyan-400 font-bold min-w-[120px]">${key}:</div>
+                                                <div class="text-gray-300 break-all font-mono flex-1">${value}</div>
                                             </div>
                                         `).join('')}
+                                        ${Object.keys(log.headers).length > 10 ? `
+                                            <div class="text-gray-500 text-center pt-1">
+                                                + ${Object.keys(log.headers).length - 10} autres headers
+                                            </div>
+                                        ` : ''}
                                     </div>
                                 </div>
                             </div>
