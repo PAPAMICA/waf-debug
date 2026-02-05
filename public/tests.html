@@ -277,7 +277,7 @@
     </footer>
 
     <script>
-    // Payloads de test WAF
+    // Payloads de test WAF (caractères < et > échappés pour éviter l'interprétation HTML)
     const PAYLOADS = {
         'SQLi': [
             "' OR '1'='1", "' OR '1'='1'--", "' OR 1=1--", "' OR 1=1#", "admin'--",
@@ -287,11 +287,11 @@
             "'/**/OR/**/1=1--", "' OR 'x'='x", "'; DROP TABLE users--"
         ],
         'XSS': [
-            "<script>alert('XSS')</script>", "<img src=x onerror=alert('XSS')>",
-            "<svg onload=alert('XSS')>", "<body onload=alert('XSS')>",
-            "<input onfocus=alert('XSS') autofocus>", "<a href=javascript:alert('XSS')>click</a>",
-            "<iframe src=javascript:alert('XSS')>", "<script>alert(String.fromCharCode(88,83,83))</script>",
-            "<SCRIPT>alert('XSS')</SCRIPT>", "javascript:alert('XSS')"
+            "\x3cscript\x3ealert('XSS')\x3c/script\x3e", "\x3cimg src=x onerror=alert('XSS')\x3e",
+            "\x3csvg onload=alert('XSS')\x3e", "\x3cbody onload=alert('XSS')\x3e",
+            "\x3cinput onfocus=alert('XSS') autofocus\x3e", "\x3ca href=javascript:alert('XSS')\x3eclick\x3c/a\x3e",
+            "\x3ciframe src=javascript:alert('XSS')\x3e", "\x3cscript\x3ealert(String.fromCharCode(88,83,83))\x3c/script\x3e",
+            "\x3cSCRIPT\x3ealert('XSS')\x3c/SCRIPT\x3e", "javascript:alert('XSS')"
         ],
         'Path Traversal': [
             "../../../etc/passwd", "../../../../etc/passwd", "../../../../../../../etc/passwd",
@@ -320,12 +320,12 @@
             "....//....//....//etc/passwd"
         ],
         'SSTI': [
-            "{{7*7}}", "${7*7}", "<%= 7*7 %>", "#{7*7}", "{{config}}",
+            "{{7*7}}", "${7*7}", "\x3c%= 7*7 %\x3e", "#{7*7}", "{{config}}",
             "{{''.__class__.__mro__[1].__subclasses__()}}"
         ],
         'XXE': [
-            '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>',
-            '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://169.254.169.254/">]><foo>&xxe;</foo>'
+            '\x3c?xml version="1.0"?\x3e\x3c!DOCTYPE foo [\x3c!ENTITY xxe SYSTEM "file:///etc/passwd"\x3e]\x3e\x3cfoo\x3e&xxe;\x3c/foo\x3e',
+            '\x3c?xml version="1.0"?\x3e\x3c!DOCTYPE foo [\x3c!ENTITY xxe SYSTEM "http://169.254.169.254/"\x3e]\x3e\x3cfoo\x3e&xxe;\x3c/foo\x3e'
         ],
         'Open Redirect': [
             "//evil.com", "///evil.com", "http://evil.com", "/\\evil.com",
