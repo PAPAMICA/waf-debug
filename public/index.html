@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAF Debug - Accueil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 min-h-screen">
+    <nav class="bg-gray-800 border-b border-purple-500 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-purple-400">🛡️ WAF Debug</span>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="/" class="text-purple-300 hover:text-white px-3 py-2 rounded-md font-medium bg-purple-700">Accueil</a>
+                    <a href="/logs" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium hover:bg-gray-700">Logs</a>
+                    <a href="/stats" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium hover:bg-gray-700">Stats</a>
+                    <a href="/debug" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium hover:bg-gray-700">Debug</a>
+                    <a href="/tests" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium hover:bg-gray-700">Tests</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-4">
+                🛡️ WAF Debug Server
+            </h1>
+            <p class="text-xl text-gray-300 mb-2">
+                Serveur de débogage et test de vulnérabilités web
+            </p>
+            <div class="inline-block bg-red-600 text-white px-4 py-2 rounded-lg font-semibold">
+                ⚠️ ENVIRONNEMENT DE TEST UNIQUEMENT - NE PAS UTILISER EN PRODUCTION
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <a href="/logs" class="bg-gradient-to-br from-blue-800 to-blue-900 rounded-xl p-6 border-2 border-blue-500 hover:border-blue-400 transition-all transform hover:scale-105 hover:shadow-2xl">
+                <div class="text-center">
+                    <div class="bg-blue-500 bg-opacity-20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-list text-4xl text-blue-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Logs</h3>
+                    <p class="text-blue-200 text-sm">Temps réel</p>
+                </div>
+            </a>
+
+            <a href="/stats" class="bg-gradient-to-br from-green-800 to-green-900 rounded-xl p-6 border-2 border-green-500 hover:border-green-400 transition-all transform hover:scale-105 hover:shadow-2xl">
+                <div class="text-center">
+                    <div class="bg-green-500 bg-opacity-20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-chart-bar text-4xl text-green-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Stats</h3>
+                    <p class="text-green-200 text-sm">Analytics</p>
+                </div>
+            </a>
+
+            <a href="/debug" class="bg-gradient-to-br from-yellow-800 to-yellow-900 rounded-xl p-6 border-2 border-yellow-500 hover:border-yellow-400 transition-all transform hover:scale-105 hover:shadow-2xl">
+                <div class="text-center">
+                    <div class="bg-yellow-500 bg-opacity-20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-bug text-4xl text-yellow-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Debug</h3>
+                    <p class="text-yellow-200 text-sm">Requêtes HTTP</p>
+                </div>
+            </a>
+
+            <a href="/tests" class="bg-gradient-to-br from-red-800 to-red-900 rounded-xl p-6 border-2 border-red-500 hover:border-red-400 transition-all transform hover:scale-105 hover:shadow-2xl">
+                <div class="text-center">
+                    <div class="bg-red-500 bg-opacity-20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-flask text-4xl text-red-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Tests</h3>
+                    <p class="text-red-200 text-sm">19 vulnérabilités</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="bg-gray-800 rounded-lg p-6 border border-purple-500 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-bold text-white">
+                    <i class="fas fa-stream text-purple-400 mr-2"></i>
+                    📡 Logs en Direct
+                </h2>
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center">
+                        <div id="liveIndicator" class="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                        <span class="text-white font-semibold">En Direct</span>
+                    </div>
+                    <span class="text-gray-400 text-sm">
+                        <span id="totalLogs">0</span> requêtes
+                    </span>
+                </div>
+            </div>
+            
+            <div id="liveLogsContainer" class="space-y-3 max-h-[600px] overflow-y-auto">
+                <div class="text-center text-gray-400 py-8">
+                    <i class="fas fa-satellite-dish text-4xl mb-3"></i>
+                    <p>En attente de requêtes...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-red-900 to-red-800 rounded-lg p-6 border border-red-600">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle text-4xl text-yellow-300 mr-4"></i>
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-2">⚠️ Avertissement de Sécurité</h3>
+                    <p class="text-gray-200">
+                        Ce serveur contient des vulnérabilités intentionnelles à des fins de test et d'apprentissage.
+                        <strong>NE JAMAIS déployer en production ou sur un réseau accessible publiquement.</strong>
+                        Utilisez uniquement dans un environnement isolé et contrôlé.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        let logs = [];
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}`);
+            
+            ws.onopen = () => {
+                console.log('WebSocket connecté');
+                document.getElementById('liveIndicator').classList.add('animate-pulse');
+            };
+            
+            ws.onmessage = (event) => {
+                const log = JSON.parse(event.data);
+                logs.unshift(log);
+                if (logs.length > 20) logs.pop(); // Garder seulement les 20 derniers
+                updateLiveLogsDisplay();
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket déconnecté, reconnexion...');
+                document.getElementById('liveIndicator').classList.remove('animate-pulse');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        function loadInitialLogs() {
+            fetch('/api/logs')
+                .then(res => res.json())
+                .then(data => {
+                    logs = data.slice(0, 20);
+                    updateLiveLogsDisplay();
+                });
+        }
+
+        function updateLiveLogsDisplay() {
+            document.getElementById('totalLogs').textContent = logs.length;
+            
+            const container = document.getElementById('liveLogsContainer');
+            if (logs.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-400 py-8">
+                        <i class="fas fa-satellite-dish text-4xl mb-3"></i>
+                        <p>En attente de requêtes...</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = logs.map(log => {
+                const timestamp = new Date(log.timestamp);
+                const vulnType = log.headers['x-vuln-type'] || 'unknown';
+                const isVulnTest = log.url.includes('/vuln/');
+                
+                return `
+                    <div class="bg-gray-900 rounded-lg p-4 border ${isVulnTest ? 'border-red-500' : 'border-gray-700'} hover:border-purple-500 transition-all">
+                        <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="px-3 py-1 rounded ${getMethodColor(log.method)} font-semibold text-xs">
+                                    ${log.method}
+                                </span>
+                                <span class="text-purple-400 font-mono text-sm break-all">${log.url}</span>
+                                ${isVulnTest ? '<span class="px-2 py-1 bg-red-600 text-white rounded text-xs font-semibold">🔓 TEST VULN</span>' : ''}
+                            </div>
+                            <span class="text-gray-400 text-xs whitespace-nowrap">
+                                ${timestamp.toLocaleTimeString('fr-FR')} • ${timestamp.toLocaleDateString('fr-FR')}
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
+                            <div class="bg-gray-800 rounded p-2">
+                                <div class="flex items-center text-xs text-gray-400 mb-1">
+                                    <i class="fas fa-network-wired mr-1"></i>
+                                    <span>IP Client</span>
+                                </div>
+                                <div class="text-white font-mono text-sm">${log.ip || 'N/A'}</div>
+                            </div>
+                            
+                            ${vulnType !== 'unknown' ? `
+                                <div class="bg-red-900 rounded p-2">
+                                    <div class="flex items-center text-xs text-red-300 mb-1">
+                                        <i class="fas fa-bug mr-1"></i>
+                                        <span>Type Vulnérabilité</span>
+                                    </div>
+                                    <div class="text-red-100 font-semibold text-sm">${vulnType}</div>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="bg-gray-800 rounded p-2">
+                                <div class="flex items-center text-xs text-gray-400 mb-1">
+                                    <i class="fas fa-globe mr-1"></i>
+                                    <span>Host</span>
+                                </div>
+                                <div class="text-white font-mono text-sm truncate">${log.headers['host'] || 'N/A'}</div>
+                            </div>
+                            
+                            <div class="bg-gray-800 rounded p-2">
+                                <div class="flex items-center text-xs text-gray-400 mb-1">
+                                    <i class="fas fa-desktop mr-1"></i>
+                                    <span>User-Agent</span>
+                                </div>
+                                <div class="text-white text-xs truncate" title="${log.headers['user-agent'] || 'N/A'}">
+                                    ${log.headers['user-agent'] || 'N/A'}
+                                </div>
+                            </div>
+                            
+                            ${log.headers['referer'] ? `
+                                <div class="bg-gray-800 rounded p-2">
+                                    <div class="flex items-center text-xs text-gray-400 mb-1">
+                                        <i class="fas fa-link mr-1"></i>
+                                        <span>Referer</span>
+                                    </div>
+                                    <div class="text-white text-xs truncate" title="${log.headers['referer']}">
+                                        ${log.headers['referer']}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${log.headers['content-type'] ? `
+                                <div class="bg-gray-800 rounded p-2">
+                                    <div class="flex items-center text-xs text-gray-400 mb-1">
+                                        <i class="fas fa-file-code mr-1"></i>
+                                        <span>Content-Type</span>
+                                    </div>
+                                    <div class="text-white text-xs truncate">${log.headers['content-type']}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${Object.keys(log.query).length > 0 ? `
+                            <details class="bg-gray-800 rounded">
+                                <summary class="cursor-pointer p-2 text-yellow-400 font-semibold text-sm hover:bg-gray-700 rounded">
+                                    <i class="fas fa-question-circle mr-1"></i>
+                                    Query Parameters (${Object.keys(log.query).length})
+                                </summary>
+                                <div class="p-3 border-t border-gray-700">
+                                    <pre class="text-gray-300 text-xs overflow-x-auto">${JSON.stringify(log.query, null, 2)}</pre>
+                                </div>
+                            </details>
+                        ` : ''}
+                        
+                        ${log.body && Object.keys(log.body).length > 0 ? `
+                            <details class="bg-gray-800 rounded mt-2">
+                                <summary class="cursor-pointer p-2 text-green-400 font-semibold text-sm hover:bg-gray-700 rounded">
+                                    <i class="fas fa-file-alt mr-1"></i>
+                                    Request Body (${Object.keys(log.body).length} champs)
+                                </summary>
+                                <div class="p-3 border-t border-gray-700">
+                                    <pre class="text-gray-300 text-xs overflow-x-auto">${JSON.stringify(log.body, null, 2)}</pre>
+                                </div>
+                            </details>
+                        ` : ''}
+                        
+                        ${Object.keys(log.cookies).length > 0 ? `
+                            <details class="bg-gray-800 rounded mt-2">
+                                <summary class="cursor-pointer p-2 text-blue-400 font-semibold text-sm hover:bg-gray-700 rounded">
+                                    <i class="fas fa-cookie-bite mr-1"></i>
+                                    Cookies (${Object.keys(log.cookies).length})
+                                </summary>
+                                <div class="p-3 border-t border-gray-700">
+                                    <pre class="text-gray-300 text-xs overflow-x-auto">${JSON.stringify(log.cookies, null, 2)}</pre>
+                                </div>
+                            </details>
+                        ` : ''}
+                        
+                        <details class="bg-gray-800 rounded mt-2">
+                            <summary class="cursor-pointer p-2 text-purple-400 font-semibold text-sm hover:bg-gray-700 rounded">
+                                <i class="fas fa-list mr-1"></i>
+                                Tous les Headers (${Object.keys(log.headers).length})
+                            </summary>
+                            <div class="p-3 border-t border-gray-700">
+                                <pre class="text-gray-300 text-xs overflow-x-auto">${JSON.stringify(log.headers, null, 2)}</pre>
+                            </div>
+                        </details>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getMethodColor(method) {
+            const colors = {
+                'GET': 'bg-blue-600 text-white',
+                'POST': 'bg-green-600 text-white',
+                'PUT': 'bg-yellow-600 text-white',
+                'DELETE': 'bg-red-600 text-white',
+                'PATCH': 'bg-purple-600 text-white',
+                'OPTIONS': 'bg-gray-600 text-white'
+            };
+            return colors[method] || 'bg-gray-600 text-white';
+        }
+
+        // Initialisation
+        loadInitialLogs();
+        connectWebSocket();
+    </script>
+
+    <footer class="bg-gray-800 border-t border-purple-500 mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-6 text-center text-gray-400">
+            <p>🛡️ WAF Debug Server - Outil de test de sécurité web</p>
+            <p class="text-sm mt-2">Pour test et développement uniquement</p>
+        </div>
+    </footer>
+</body>
+</html>

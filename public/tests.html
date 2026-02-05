@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAF Debug - Tests de Vulnérabilités</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-red-900 to-gray-900 min-h-screen">
+    <nav class="bg-gray-800 border-b border-red-500 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-red-400">🛡️ WAF Debug</span>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="/" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium hover:bg-gray-700">Accueil</a>
+                    <a href="/logs" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium hover:bg-gray-700">Logs</a>
+                    <a href="/stats" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium hover:bg-gray-700">Stats</a>
+                    <a href="/debug" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium hover:bg-gray-700">Debug</a>
+                    <a href="/tests" class="text-red-300 hover:text-white px-3 py-2 rounded-md font-medium bg-red-700">Tests</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-white mb-4">
+                <i class="fas fa-shield-virus text-red-400"></i> Tests de Vulnérabilités
+            </h1>
+            <p class="text-gray-300">Testez différents types d'attaques web</p>
+            <div class="mt-4 bg-red-900 border border-red-600 rounded-lg p-4">
+                <p class="text-red-200">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <strong>Avertissement:</strong> Ces tests sont destinés uniquement à un environnement de développement isolé.
+                </p>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto space-y-6">
+            <!-- SQL Injection -->
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border-l-4 border-red-500 hover:border-red-400 transition-all hover:shadow-2xl">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="bg-red-500 bg-opacity-20 rounded-xl p-3 mr-4">
+                                <i class="fas fa-database text-3xl text-red-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">SQL Injection</h3>
+                                <p class="text-gray-400 text-sm">Test d'injection SQL dans les paramètres de requête</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 bg-red-900 text-red-300 rounded-full text-xs font-semibold">GET</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload</label>
+                            <input type="text" id="sqli-input" placeholder="admin' OR '1'='1" 
+                                class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-red-500 focus:outline-none transition-all font-mono">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="testSQLi()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                                <i class="fas fa-play mr-2"></i>Lancer
+                            </button>
+                        </div>
+                    </div>
+                    <div id="sqli-result" class="hidden"></div>
+                </div>
+            </div>
+
+            <!-- XSS -->
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border-l-4 border-orange-500 hover:border-orange-400 transition-all hover:shadow-2xl">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="bg-orange-500 bg-opacity-20 rounded-xl p-3 mr-4">
+                                <i class="fas fa-code text-3xl text-orange-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">XSS (Cross-Site Scripting)</h3>
+                                <p class="text-gray-400 text-sm">Test d'injection de code JavaScript</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 bg-orange-900 text-orange-300 rounded-full text-xs font-semibold">GET</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload</label>
+                            <input type="text" id="xss-input" placeholder="<script>alert('XSS')</script>" 
+                                class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-orange-500 focus:outline-none transition-all font-mono">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="testXSS()" class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                                <i class="fas fa-play mr-2"></i>Lancer
+                            </button>
+                        </div>
+                    </div>
+                    <div id="xss-result" class="hidden"></div>
+                </div>
+            </div>
+
+            <!-- Path Traversal -->
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border-l-4 border-yellow-500 hover:border-yellow-400 transition-all hover:shadow-2xl">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="bg-yellow-500 bg-opacity-20 rounded-xl p-3 mr-4">
+                                <i class="fas fa-folder-open text-3xl text-yellow-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">Path Traversal</h3>
+                                <p class="text-gray-400 text-sm">Test de traversée de répertoires</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 bg-yellow-900 text-yellow-300 rounded-full text-xs font-semibold">GET</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload</label>
+                            <input type="text" id="path-input" placeholder="../../../etc/passwd" 
+                                class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-yellow-500 focus:outline-none transition-all font-mono">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="testPathTraversal()" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                                <i class="fas fa-play mr-2"></i>Lancer
+                            </button>
+                        </div>
+                    </div>
+                    <div id="path-result" class="hidden"></div>
+                </div>
+            </div>
+
+            <!-- Command Injection -->
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border-l-4 border-green-500 hover:border-green-400 transition-all hover:shadow-2xl">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="bg-green-500 bg-opacity-20 rounded-xl p-3 mr-4">
+                                <i class="fas fa-terminal text-3xl text-green-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">Command Injection</h3>
+                                <p class="text-gray-400 text-sm">Test d'injection de commandes système</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 bg-green-900 text-green-300 rounded-full text-xs font-semibold">GET</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload</label>
+                            <input type="text" id="cmd-input" placeholder="localhost; cat /etc/passwd" 
+                                class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-green-500 focus:outline-none transition-all font-mono">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="testCommandInjection()" class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                                <i class="fas fa-play mr-2"></i>Lancer
+                            </button>
+                        </div>
+                    </div>
+                    <div id="cmd-result" class="hidden"></div>
+                </div>
+            </div>
+
+            <!-- SSRF -->
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border-l-4 border-blue-500 hover:border-blue-400 transition-all hover:shadow-2xl">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="bg-blue-500 bg-opacity-20 rounded-xl p-3 mr-4">
+                                <i class="fas fa-network-wired text-3xl text-blue-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">SSRF (Server-Side Request Forgery)</h3>
+                                <p class="text-gray-400 text-sm">Forcer le serveur à faire des requêtes non autorisées</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-900 text-blue-300 rounded-full text-xs font-semibold">GET</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">URL cible</label>
+                            <input type="text" id="ssrf-input" placeholder="http://localhost:22" 
+                                class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-blue-500 focus:outline-none transition-all font-mono">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="testSSRF()" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                                <i class="fas fa-play mr-2"></i>Lancer
+                            </button>
+                        </div>
+                    </div>
+                    <div id="ssrf-result" class="hidden"></div>
+                </div>
+            </div>
+
+            <!-- NoSQL Injection -->
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border-l-4 border-purple-500 hover:border-purple-400 transition-all hover:shadow-2xl">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="bg-purple-500 bg-opacity-20 rounded-xl p-3 mr-4">
+                                <i class="fas fa-database text-3xl text-purple-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">NoSQL Injection</h3>
+                                <p class="text-gray-400 text-sm">Test d'injection dans base de données NoSQL</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 bg-purple-900 text-purple-300 rounded-full text-xs font-semibold">POST</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload JSON</label>
+                            <input type="text" id="nosqli-input" placeholder='{"$ne": null}' 
+                                class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-purple-500 focus:outline-none transition-all font-mono">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="testNoSQLi()" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                                <i class="fas fa-play mr-2"></i>Lancer
+                            </button>
+                        </div>
+                    </div>
+                    <div id="nosqli-result" class="hidden"></div>
+                </div>
+            </div>
+
+            <!-- LFI -->
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border-l-4 border-pink-500 hover:border-pink-400 transition-all hover:shadow-2xl">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="bg-pink-500 bg-opacity-20 rounded-xl p-3 mr-4">
+                                <i class="fas fa-file text-3xl text-pink-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">LFI (Local File Inclusion)</h3>
+                                <p class="text-gray-400 text-sm">Inclusion de fichiers locaux non autorisés</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 bg-pink-900 text-pink-300 rounded-full text-xs font-semibold">GET</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Chemin du fichier</label>
+                            <input type="text" id="lfi-input" placeholder="/etc/passwd" 
+                                class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-pink-500 focus:outline-none transition-all font-mono">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="testLFI()" class="w-full bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                                <i class="fas fa-play mr-2"></i>Lancer
+                            </button>
+                        </div>
+                    </div>
+                    <div id="lfi-result" class="hidden"></div>
+                </div>
+            </div>
+
+            <!-- Open Redirect -->
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border-l-4 border-red-500 hover:border-red-400 transition-all hover:shadow-2xl">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="bg-red-500 bg-opacity-20 rounded-xl p-3 mr-4">
+                                <i class="fas fa-external-link-alt text-3xl text-red-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">Open Redirect</h3>
+                                <p class="text-gray-400 text-sm">Redirection non validée vers site externe</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 bg-red-900 text-red-300 rounded-full text-xs font-semibold">GET</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">URL de redirection</label>
+                            <input type="text" id="redirect-input" placeholder="https://evil.com" 
+                                class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-red-500 focus:outline-none transition-all font-mono">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="testOpenRedirect()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                                <i class="fas fa-play mr-2"></i>Lancer
+                            </button>
+                        </div>
+                    </div>
+                    <div id="redirect-result" class="hidden"></div>
+                </div>
+            </div>
+
+            <!-- XXE -->
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl border-l-4 border-orange-500 hover:border-orange-400 transition-all hover:shadow-2xl">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="bg-orange-500 bg-opacity-20 rounded-xl p-3 mr-4">
+                                <i class="fas fa-file-code text-3xl text-orange-400"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">XXE (XML External Entity)</h3>
+                                <p class="text-gray-400 text-sm">Injection d'entités externes XML</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 bg-orange-900 text-orange-300 rounded-full text-xs font-semibold">POST</span>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-2 font-semibold">Payload XML</label>
+                            <textarea id="xxe-input" rows="4" placeholder='<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>' 
+                                class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm border-2 border-gray-700 focus:border-orange-500 focus:outline-none transition-all font-mono"></textarea>
+                        </div>
+                        <button onclick="testXXE()" class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                            <i class="fas fa-play mr-2"></i>Lancer le Test
+                        </button>
+                    </div>
+                    <div id="xxe-result" class="hidden"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.classList.remove('hidden');
+            
+            // Déterminer si c'est vulnérable ou sécurisé
+            const isVulnerable = data.vulnerable === true || (!isError && !data.blocked && !data.protected);
+            
+            element.className = `mt-4`;
+            element.innerHTML = `
+                <div class="p-5 rounded-xl ${isVulnerable ? 'bg-gradient-to-r from-red-900 to-red-800 border-2 border-red-400' : 'bg-gradient-to-r from-green-900 to-green-800 border-2 border-green-400'} mb-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 mr-4">
+                            <div class="${isVulnerable ? 'bg-red-600' : 'bg-green-600'} rounded-full p-4">
+                                <i class="fas ${isVulnerable ? 'fa-unlock-alt' : 'fa-shield-alt'} text-3xl text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow">
+                            <div class="text-3xl font-bold ${isVulnerable ? 'text-red-100' : 'text-green-100'} mb-1">
+                                ${isVulnerable ? 'VULNERABLE' : 'PROTECTED'}
+                            </div>
+                            <div class="text-base ${isVulnerable ? 'text-red-200' : 'text-green-200'}">
+                                ${isVulnerable ? 'La vulnérabilité a été exploitée avec succès' : 'La requête a été bloquée ou sécurisée'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-800 border-2 border-gray-600 rounded-xl p-5">
+                    <div class="flex items-center mb-4 pb-3 border-b border-gray-700">
+                        <i class="fas fa-code text-purple-400 text-xl mr-3"></i>
+                        <h4 class="text-white font-bold text-lg">Détails de la Réponse</h4>
+                    </div>
+                    <pre class="text-gray-300 text-sm overflow-x-auto bg-gray-900 p-4 rounded-lg border border-gray-700">${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.classList.remove('hidden');
+            element.className = 'mt-4';
+            element.innerHTML = `
+                <div class="bg-gradient-to-r from-blue-900 to-blue-800 border-2 border-blue-400 rounded-xl p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 mr-4">
+                            <div class="bg-blue-600 rounded-full p-4">
+                                <i class="fas fa-spinner fa-spin text-3xl text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow">
+                            <div class="text-2xl font-bold text-blue-100 mb-1">Test en cours...</div>
+                            <div class="text-base text-blue-200">Envoi de la requête et analyse de la réponse</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function testSQLi() {
+            const input = document.getElementById('sqli-input').value;
+            showLoading('sqli-result');
+            try {
+                const response = await fetch(`/vuln/sqli?username=${encodeURIComponent(input)}`, {
+                    headers: { 'X-Vuln-Type': 'sqli' }
+                });
+                const data = await response.json();
+                showResult('sqli-result', data);
+            } catch (error) {
+                showResult('sqli-result', { error: error.message }, true);
+            }
+        }
+
+        async function testXSS() {
+            const input = document.getElementById('xss-input').value;
+            showLoading('xss-result');
+            try {
+                const response = await fetch(`/vuln/xss?name=${encodeURIComponent(input)}`, {
+                    headers: { 'X-Vuln-Type': 'xss' }
+                });
+                const data = await response.text();
+                const vulnerable = data.includes(input) && !data.includes('&lt;') && !data.includes('&gt;');
+                showResult('xss-result', { 
+                    vulnerable: vulnerable,
+                    html: data.substring(0, 500) + '...',
+                    input_reflected: vulnerable ? 'Oui - Code injecté non filtré' : 'Non - Code filtré ou encodé'
+                });
+            } catch (error) {
+                showResult('xss-result', { error: error.message }, true);
+            }
+        }
+
+        async function testPathTraversal() {
+            const input = document.getElementById('path-input').value;
+            showLoading('path-result');
+            try {
+                const response = await fetch(`/vuln/path-traversal?file=${encodeURIComponent(input)}`, {
+                    headers: { 'X-Vuln-Type': 'path-traversal' }
+                });
+                const data = await response.json();
+                showResult('path-result', data);
+            } catch (error) {
+                showResult('path-result', { error: error.message }, true);
+            }
+        }
+
+        async function testCommandInjection() {
+            const input = document.getElementById('cmd-input').value;
+            showLoading('cmd-result');
+            try {
+                const response = await fetch(`/vuln/command-injection?host=${encodeURIComponent(input)}`, {
+                    headers: { 'X-Vuln-Type': 'command-injection' }
+                });
+                const data = await response.json();
+                showResult('cmd-result', data);
+            } catch (error) {
+                showResult('cmd-result', { error: error.message }, true);
+            }
+        }
+
+        async function testSSRF() {
+            const input = document.getElementById('ssrf-input').value;
+            showLoading('ssrf-result');
+            try {
+                const response = await fetch(`/vuln/ssrf?url=${encodeURIComponent(input)}`, {
+                    headers: { 'X-Vuln-Type': 'ssrf' }
+                });
+                const data = await response.json();
+                showResult('ssrf-result', data);
+            } catch (error) {
+                showResult('ssrf-result', { error: error.message }, true);
+            }
+        }
+
+        async function testNoSQLi() {
+            const input = document.getElementById('nosqli-input').value;
+            showLoading('nosqli-result');
+            try {
+                const response = await fetch('/vuln/nosqli', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Vuln-Type': 'nosqli'
+                    },
+                    body: JSON.stringify({ username: input, password: input })
+                });
+                const data = await response.json();
+                showResult('nosqli-result', data);
+            } catch (error) {
+                showResult('nosqli-result', { error: error.message }, true);
+            }
+        }
+
+        async function testLFI() {
+            const input = document.getElementById('lfi-input').value;
+            showLoading('lfi-result');
+            try {
+                const response = await fetch(`/vuln/lfi?page=${encodeURIComponent(input)}`, {
+                    headers: { 'X-Vuln-Type': 'lfi' }
+                });
+                const data = await response.json();
+                showResult('lfi-result', data);
+            } catch (error) {
+                showResult('lfi-result', { error: error.message }, true);
+            }
+        }
+
+        async function testOpenRedirect() {
+            const input = document.getElementById('redirect-input').value;
+            showResult('redirect-result', { 
+                vulnerable: true,
+                message: 'Test de redirection - Endpoint vulnérable', 
+                redirect_url: `/vuln/open-redirect?url=${encodeURIComponent(input)}`,
+                target: input,
+                note: 'Cette URL redirigera vers la cible spécifiée sans validation',
+                recommendation: 'Implémenter une whitelist de domaines autorisés'
+            });
+        }
+
+        async function testXXE() {
+            const input = document.getElementById('xxe-input').value;
+            showLoading('xxe-result');
+            try {
+                const response = await fetch('/vuln/xxe', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/xml',
+                        'X-Vuln-Type': 'xxe'
+                    },
+                    body: input
+                });
+                const data = await response.json();
+                showResult('xxe-result', data);
+            } catch (error) {
+                showResult('xxe-result', { error: error.message }, true);
+            }
+        }
+    </script>
+</body>
+</html>

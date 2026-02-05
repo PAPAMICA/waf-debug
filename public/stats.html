@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAF Debug - Statistiques</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 min-h-screen">
+    <nav class="bg-gray-800 border-b border-green-500 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-green-400">🛡️ WAF Debug</span>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="/" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium hover:bg-gray-700">Accueil</a>
+                    <a href="/logs" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium hover:bg-gray-700">Logs</a>
+                    <a href="/stats" class="text-green-300 hover:text-white px-3 py-2 rounded-md font-medium bg-green-700">Stats</a>
+                    <a href="/debug" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium hover:bg-gray-700">Debug</a>
+                    <a href="/tests" class="text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium hover:bg-gray-700">Tests</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-white mb-4">
+                <i class="fas fa-chart-line text-green-400"></i> Statistiques
+            </h1>
+            <p class="text-gray-300">Analytics et métriques des requêtes</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gray-800 rounded-lg p-6 border border-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">Total Requêtes</p>
+                        <p id="totalRequests" class="text-4xl font-bold text-white">0</p>
+                    </div>
+                    <div class="bg-green-500 rounded-full p-4">
+                        <i class="fas fa-server text-2xl text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 rounded-lg p-6 border border-blue-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">Types de Vulnérabilités</p>
+                        <p id="vulnTypes" class="text-4xl font-bold text-white">0</p>
+                    </div>
+                    <div class="bg-blue-500 rounded-full p-4">
+                        <i class="fas fa-bug text-2xl text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 rounded-lg p-6 border border-yellow-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">Requêtes/Minute</p>
+                        <p id="reqPerMin" class="text-4xl font-bold text-white">0</p>
+                    </div>
+                    <div class="bg-yellow-500 rounded-full p-4">
+                        <i class="fas fa-tachometer-alt text-2xl text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-800 rounded-lg p-6 border border-green-500">
+                <h2 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-chart-pie text-green-400 mr-2"></i>
+                    Répartition par Type de Vulnérabilité
+                </h2>
+                <canvas id="vulnChart"></canvas>
+            </div>
+
+            <div class="bg-gray-800 rounded-lg p-6 border border-blue-500">
+                <h2 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-chart-bar text-blue-400 mr-2"></i>
+                    Top Vulnérabilités Testées
+                </h2>
+                <div id="topVulns" class="space-y-3">
+                    <!-- Les données seront insérées ici -->
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 rounded-lg p-6 border border-purple-500">
+            <h2 class="text-xl font-bold text-white mb-4">
+                <i class="fas fa-list text-purple-400 mr-2"></i>
+                Détails des Statistiques
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-gray-700">
+                            <th class="py-3 px-4 text-gray-400">Type de Vulnérabilité</th>
+                            <th class="py-3 px-4 text-gray-400">Nombre de Tests</th>
+                            <th class="py-3 px-4 text-gray-400">Pourcentage</th>
+                            <th class="py-3 px-4 text-gray-400">Tendance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statsTable">
+                        <!-- Les données seront insérées ici -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let vulnChart;
+
+        function loadStats() {
+            fetch('/api/stats')
+                .then(res => res.json())
+                .then(data => {
+                    updateStatsDisplay(data);
+                });
+        }
+
+        function updateStatsDisplay(stats) {
+            // Mise à jour des cartes
+            document.getElementById('totalRequests').textContent = stats.total;
+            document.getElementById('vulnTypes').textContent = Object.keys(stats.byVuln).length;
+            document.getElementById('reqPerMin').textContent = '~' + Math.round(stats.total / 60);
+
+            // Préparation des données pour le graphique
+            const vulnData = Object.entries(stats.byVuln)
+                .filter(([key]) => key !== 'unknown')
+                .sort((a, b) => b[1] - a[1]);
+
+            // Graphique en camembert
+            const ctx = document.getElementById('vulnChart').getContext('2d');
+            
+            if (vulnChart) {
+                vulnChart.destroy();
+            }
+
+            vulnChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: vulnData.map(([name]) => name),
+                    datasets: [{
+                        data: vulnData.map(([, count]) => count),
+                        backgroundColor: [
+                            '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6',
+                            '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#a855f7',
+                            '#84cc16', '#f43f5e', '#0ea5e9', '#d946ef', '#facc15'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#fff',
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Top vulnérabilités
+            const topVulnsHtml = vulnData.slice(0, 5).map(([name, count]) => `
+                <div class="flex items-center justify-between p-3 bg-gray-700 rounded">
+                    <span class="text-white">${name}</span>
+                    <div class="flex items-center">
+                        <div class="w-32 h-2 bg-gray-600 rounded-full mr-3">
+                            <div class="h-2 bg-green-500 rounded-full" style="width: ${(count/stats.total)*100}%"></div>
+                        </div>
+                        <span class="text-white font-semibold">${count}</span>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('topVulns').innerHTML = topVulnsHtml || '<p class="text-gray-400">Aucune donnée disponible</p>';
+
+            // Tableau détaillé
+            const tableHtml = vulnData.map(([name, count]) => `
+                <tr class="border-b border-gray-700 hover:bg-gray-700">
+                    <td class="py-3 px-4 text-white">${name}</td>
+                    <td class="py-3 px-4 text-white">${count}</td>
+                    <td class="py-3 px-4">
+                        <span class="text-green-400">${((count/stats.total)*100).toFixed(1)}%</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <i class="fas fa-arrow-up text-green-400"></i>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('statsTable').innerHTML = tableHtml || '<tr><td colspan="4" class="py-4 text-center text-gray-400">Aucune donnée disponible</td></tr>';
+        }
+
+        // Rafraîchissement automatique toutes les 5 secondes
+        loadStats();
+        setInterval(loadStats, 5000);
+    </script>
+</body>
+</html>

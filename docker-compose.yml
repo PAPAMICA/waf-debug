@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  waf-debug:
+    build: .
+    container_name: waf-debug-server
+    ports:
+      - "80:80"
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+    networks:
+      - waf-debug-network
+
+networks:
+  waf-debug-network:
+    driver: bridge
