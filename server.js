@@ -117,8 +117,9 @@ app.use((req, res, next) => {
 
 app.use(cookieParser());
 
-// CORS headers pour les API
+// CORS headers et logging pour les API
 app.use('/api', (req, res, next) => {
+  console.log(`📡 API Request: ${req.method} ${req.url}`);
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
@@ -257,15 +258,16 @@ app.get('/api/stats', (req, res) => {
   res.json(stats);
 });
 
-// API pour effacer les logs
-app.post('/api/clear-logs', (req, res) => {
+// API pour effacer les logs (supporte GET et POST pour contourner les WAF)
+app.all('/api/clear-logs', (req, res) => {
+  console.log('📥 Clear logs request received:', req.method);
   try {
     requestLogs = [];
     stats = { total: 0, byMethod: {}, byIp: {}, byCountry: {}, byPath: {} };
     fs.writeFileSync(logsFile, '');
     fs.writeFileSync(statsFile, JSON.stringify(stats));
-    console.log('✅ Logs cleared successfully');
-    res.json({ success: true });
+    console.log('✅ Logs and stats cleared successfully');
+    res.json({ success: true, message: 'Logs and stats cleared' });
   } catch (error) {
     console.error('❌ Error clearing logs:', error);
     res.status(500).json({ success: false, error: error.message });

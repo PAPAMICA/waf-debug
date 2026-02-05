@@ -343,23 +343,26 @@
         }
 
         function clearLogs() {
-            if (confirm('Voulez-vous vraiment effacer tous les logs ?')) {
-                fetch('/api/clear-logs', { 
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+            if (confirm('Voulez-vous vraiment effacer tous les logs et statistiques ?')) {
+                // Utiliser GET pour éviter les blocages WAF sur POST
+                fetch('/api/clear-logs')
+                .then(res => {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
                 })
-                .then(res => res.json())
                 .then(data => {
                     if (data.success) {
                         recentLogs = [];
                         updateLiveActivity();
                         loadStats();
-                        alert('Logs effacés avec succès !');
+                        alert('Logs et statistiques effacés avec succès !');
+                    } else {
+                        alert('Erreur: ' + (data.error || 'Inconnu'));
                     }
                 })
                 .catch(e => {
                     console.error('Clear logs error:', e);
-                    alert('Erreur lors de la suppression des logs');
+                    alert('Erreur lors de la suppression: ' + e.message);
                 });
             }
         }
