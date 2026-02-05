@@ -267,6 +267,57 @@ app.get('/api/stats', (req, res) => {
   res.json(stats);
 });
 
+// API pour logger les tests (y compris ceux qui échouent)
+app.post('/api/log-test', (req, res) => {
+  const { category, method, payload, status, error, targetUrl } = req.body;
+  
+  const realIp = req.headers['x-real-ip'] || 
+                 req.headers['x-forwarded-for']?.split(',')[0] || 
+                 req.ip || 
+                 req.connection.remoteAddress;
+  const cleanIp = realIp ? realIp.replace(/^::ffff:/, '') : 'unknown';
+  
+  let geoData = null;
+  if (cleanIp && cleanIp !== '127.0.0.1' && cleanIp !== 'localhost') {
+    const geo = geoip.lookup(cleanIp);
+    if (geo) {
+      geoData = { country: geo.country, region: geo.region, city: geo.city };
+    }
+  }
+  
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    type: 'waf-test',
+    method: method,
+    url: targetUrl,
+    category: category,
+    payload: payload ? payload.substring(0, 500) : '',
+    status: status,
+    error: error || null,
+    realIp: cleanIp,
+    geo: geoData,
+    headers: { 'x-vuln-type': category ? category.toLowerCase().replace(/\s+/g, '-') : 'test' }
+  };
+  
+  requestLogs.unshift(logEntry);
+  if (requestLogs.length > 1000) requestLogs = requestLogs.slice(0, 1000);
+  
+  fs.appendFileSync(logsFile, JSON.stringify(logEntry) + '\n');
+  broadcastLog(logEntry);
+  
+  // Update stats
+  stats.total++;
+  const vulnType = category ? category.toLowerCase().replace(/\s+/g, '-') : 'unknown';
+  stats.byVuln[vulnType] = (stats.byVuln[vulnType] || 0) + 1;
+  stats.byIp[cleanIp] = (stats.byIp[cleanIp] || 0) + 1;
+  if (geoData && geoData.country) {
+    stats.byCountry[geoData.country] = (stats.byCountry[geoData.country] || 0) + 1;
+  }
+  fs.writeFileSync(statsFile, JSON.stringify(stats));
+  
+  res.json({ success: true });
+});
+
 // API pour les payloads de test WAF
 app.get('/api/payloads', (req, res) => {
   const payloads = {

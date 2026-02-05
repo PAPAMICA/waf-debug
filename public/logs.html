@@ -117,6 +117,18 @@
                         <option value="suspicious">Suspectes uniquement</option>
                         <option value="safe">Normales uniquement</option>
                     </select>
+                    <select id="logTypeFilter" class="bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
+                        <option value="">Toutes sources</option>
+                        <option value="waf-test">Tests WAF</option>
+                        <option value="request">Requêtes directes</option>
+                    </select>
+                    <select id="testStatusFilter" class="bg-dark-800 text-white px-4 py-2.5 rounded-lg border border-dark-700 focus:border-accent-500 focus:outline-none text-sm">
+                        <option value="">Tous statuts</option>
+                        <option value="200">Non bloqué (2xx)</option>
+                        <option value="403">Bloqué (403)</option>
+                        <option value="301">Redirect (3xx)</option>
+                        <option value="ERR">Erreur</option>
+                    </select>
                     <div class="flex items-center gap-2 px-4 py-2 bg-dark-800 rounded-lg border border-dark-700">
                         <div id="liveIndicator" class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
                         <span class="text-emerald-400 text-sm font-medium">Live</span>
@@ -203,6 +215,9 @@
         }
 
         function shouldDisplayLog(log) {
+            // Toujours afficher les logs de test WAF
+            if (log.type === 'waf-test') return true;
+            
             const url = log.url || '';
             const internalPages = ['/', '/logs', '/stats', '/debug', '/tests', '/index.html', '/logs.html', '/stats.html', '/debug.html', '/tests.html'];
             const urlPath = url.split('?')[0];
@@ -236,6 +251,8 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const methodFilter = document.getElementById('methodFilter').value;
             const suspiciousFilter = document.getElementById('suspiciousFilter').value;
+            const logTypeFilter = document.getElementById('logTypeFilter').value;
+            const testStatusFilter = document.getElementById('testStatusFilter').value;
             const limit = parseInt(document.getElementById('limitFilter').value) || 100;
             
             let filteredLogs = logs.filter(log => {
@@ -247,9 +264,14 @@
                 // Method filter
                 if (methodFilter && log.method !== methodFilter) return false;
                 // Suspicious filter
-                const isSuspicious = detectAttackFromLog(log) || (log.url && log.url.includes('/vuln/'));
+                const isSuspicious = detectAttackFromLog(log) || (log.url && log.url.includes('/vuln/')) || log.type === 'waf-test';
                 if (suspiciousFilter === 'suspicious' && !isSuspicious) return false;
                 if (suspiciousFilter === 'safe' && isSuspicious) return false;
+                // Log type filter
+                if (logTypeFilter === 'waf-test' && log.type !== 'waf-test') return false;
+                if (logTypeFilter === 'request' && log.type === 'waf-test') return false;
+                // Test status filter (only for waf-test logs)
+                if (testStatusFilter && log.type === 'waf-test' && log.status !== testStatusFilter) return false;
                 return true;
             });
 
@@ -274,25 +296,37 @@
 
             container.innerHTML = filteredLogs.map(log => {
                 const timestamp = new Date(log.timestamp);
+                const isWafTest = log.type === 'waf-test';
                 const isVulnTest = log.url && log.url.includes('/vuln/');
-                const isSuspicious = detectAttackFromLog(log) || isVulnTest;
+                const isSuspicious = detectAttackFromLog(log) || isVulnTest || isWafTest;
                 const realIp = log.realIp || log.ip;
                 const geoInfo = log.geo;
-                const vulnType = log.headers ? log.headers['x-vuln-type'] : '';
+                const vulnType = log.category || (log.headers ? log.headers['x-vuln-type'] : '');
                 const contentType = log.headers ? log.headers['content-type'] : '';
                 const referer = log.headers ? log.headers['referer'] : '';
                 const host = log.headers ? log.headers['host'] : '';
+                const testStatus = log.status;
+                const testError = log.error;
+                
+                // Status color for WAF tests
+                const getStatusColor = (status) => {
+                    if (status === '200') return 'bg-rose-500/20 text-rose-400';
+                    if (status === '403') return 'bg-emerald-500/20 text-emerald-400';
+                    if (status === '301') return 'bg-amber-500/20 text-amber-400';
+                    return 'bg-dark-600 text-dark-300';
+                };
                 
                 return `
-                    <div class="glass-dark rounded-xl overflow-hidden ${isSuspicious ? 'ring-1 ring-rose-500/50' : ''}">
+                    <div class="glass-dark rounded-xl overflow-hidden ${isSuspicious ? 'ring-1 ring-rose-500/50' : ''} ${isWafTest ? 'border-l-2 border-violet-500' : ''}">
                         <div class="p-4">
                             <div class="flex items-center justify-between gap-4 mb-3">
                                 <div class="flex items-center gap-3 min-w-0 flex-1">
+                                    ${isWafTest ? '<span class="px-2 py-1 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-medium flex-shrink-0"><i class="fas fa-flask-vial mr-1"></i>TEST</span>' : ''}
                                     <span class="px-2.5 py-1 rounded-lg ${getMethodColor(log.method)} font-mono text-xs font-medium flex-shrink-0">
                                         ${log.method}
                                     </span>
+                                    ${isWafTest && testStatus ? `<span class="px-2 py-1 rounded-lg ${getStatusColor(testStatus)} font-mono text-xs font-medium flex-shrink-0">${testStatus}</span>` : ''}
                                     <span class="text-accent-300 font-mono text-sm truncate" title="${log.url}">${log.url}</span>
-                                    ${isSuspicious ? '<span class="px-2 py-1 bg-rose-500/20 text-rose-400 rounded-lg text-xs font-medium flex-shrink-0"><i class="fas fa-exclamation-triangle mr-1"></i>Suspect</span>' : ''}
                                 </div>
                                 <span class="text-dark-500 text-xs font-mono flex-shrink-0">
                                     ${timestamp.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit', second: '2-digit'})}
@@ -305,6 +339,18 @@
                                     <span class="text-white font-mono ml-1">${realIp}</span>
                                     ${geoInfo ? `<span class="ml-1" title="${geoInfo.country}${geoInfo.city ? ', ' + geoInfo.city : ''}">${getCountryFlag(geoInfo.country)}</span>` : ''}
                                 </div>
+                                ${vulnType ? `
+                                    <div class="px-3 py-1.5 bg-rose-500/10 rounded-lg text-xs">
+                                        <span class="text-rose-400">Cat:</span>
+                                        <span class="text-rose-300 ml-1">${vulnType}</span>
+                                    </div>
+                                ` : ''}
+                                ${isWafTest && testError ? `
+                                    <div class="px-3 py-1.5 bg-red-500/10 rounded-lg text-xs">
+                                        <span class="text-red-400">Erreur:</span>
+                                        <span class="text-red-300 ml-1">${testError}</span>
+                                    </div>
+                                ` : ''}
                                 ${log.query && Object.keys(log.query).length > 0 ? `
                                     <div class="px-3 py-1.5 bg-amber-500/10 rounded-lg text-xs">
                                         <span class="text-amber-400">Query:</span>
@@ -317,13 +363,13 @@
                                         <span class="text-emerald-300 ml-1">${Object.keys(log.body).length} champ(s)</span>
                                     </div>
                                 ` : ''}
-                                ${vulnType ? `
-                                    <div class="px-3 py-1.5 bg-rose-500/10 rounded-lg text-xs">
-                                        <span class="text-rose-400">Type:</span>
-                                        <span class="text-rose-300 ml-1">${vulnType}</span>
-                                    </div>
-                                ` : ''}
                             </div>
+                            ${isWafTest && log.payload ? `
+                                <div class="mt-3 px-3 py-2 bg-dark-900 rounded-lg">
+                                    <span class="text-violet-400 text-xs font-medium">Payload:</span>
+                                    <code class="text-violet-200 text-xs font-mono ml-2 break-all">${escapeHtml(log.payload)}</code>
+                                </div>
+                            ` : ''}
                         </div>
                         
                         <details class="group">
@@ -541,6 +587,8 @@
         document.getElementById('searchInput').addEventListener('input', updateLogsDisplay);
         document.getElementById('methodFilter').addEventListener('change', updateLogsDisplay);
         document.getElementById('suspiciousFilter').addEventListener('change', updateLogsDisplay);
+        document.getElementById('logTypeFilter').addEventListener('change', updateLogsDisplay);
+        document.getElementById('testStatusFilter').addEventListener('change', updateLogsDisplay);
         document.getElementById('limitFilter').addEventListener('change', updateLogsDisplay);
 
         loadInitialLogs();

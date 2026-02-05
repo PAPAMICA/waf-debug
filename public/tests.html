@@ -192,25 +192,25 @@
             </div>
         </div>
 
-        <!-- Stats Cards -->
+        <!-- Stats Cards (Cliquables pour filtrer) -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            <div class="glass rounded-xl p-4">
+            <div class="glass rounded-xl p-4 cursor-pointer hover:ring-2 hover:ring-white/20 transition-all" onclick="filterResults('all')" id="filter-all">
                 <div class="text-dark-400 text-xs mb-1 font-medium">Total</div>
                 <div class="text-2xl font-bold text-white font-mono" id="stat-total">0</div>
             </div>
-            <div class="glass rounded-xl p-4 border-l-2 border-rose-500">
+            <div class="glass rounded-xl p-4 border-l-2 border-rose-500 cursor-pointer hover:ring-2 hover:ring-rose-500/50 transition-all" onclick="filterResults('200')" id="filter-200">
                 <div class="text-dark-400 text-xs mb-1 font-medium">Non bloqué (2xx)</div>
                 <div class="text-2xl font-bold text-rose-400 font-mono" id="stat-200">0</div>
             </div>
-            <div class="glass rounded-xl p-4 border-l-2 border-emerald-500">
+            <div class="glass rounded-xl p-4 border-l-2 border-emerald-500 cursor-pointer hover:ring-2 hover:ring-emerald-500/50 transition-all" onclick="filterResults('403')" id="filter-403">
                 <div class="text-dark-400 text-xs mb-1 font-medium">Bloqué (403)</div>
                 <div class="text-2xl font-bold text-emerald-400 font-mono" id="stat-403">0</div>
             </div>
-            <div class="glass rounded-xl p-4 border-l-2 border-amber-500">
+            <div class="glass rounded-xl p-4 border-l-2 border-amber-500 cursor-pointer hover:ring-2 hover:ring-amber-500/50 transition-all" onclick="filterResults('301')" id="filter-301">
                 <div class="text-dark-400 text-xs mb-1 font-medium">Redirect (3xx)</div>
                 <div class="text-2xl font-bold text-amber-400 font-mono" id="stat-301">0</div>
             </div>
-            <div class="glass rounded-xl p-4 border-l-2 border-dark-500">
+            <div class="glass rounded-xl p-4 border-l-2 border-dark-500 cursor-pointer hover:ring-2 hover:ring-dark-400/50 transition-all" onclick="filterResults('ERR')" id="filter-ERR">
                 <div class="text-dark-400 text-xs mb-1 font-medium">Erreurs</div>
                 <div class="text-2xl font-bold text-dark-400 font-mono" id="stat-err">0</div>
             </div>
@@ -303,9 +303,10 @@
     }
 
     let results = [];
-    let stats = { total: 0, '200': 0, '403': 0, '301': 0, 'err': 0 };
+    let stats = { total: 0, '200': 0, '403': 0, '301': 0, 'ERR': 0 };
     let isRunning = false;
     let shouldStop = false;
+    let currentFilter = 'all';
 
     // Init au chargement
     document.addEventListener('DOMContentLoaded', function() {
@@ -374,7 +375,11 @@
         }
 
         results = [];
-        stats = { total: 0, '200': 0, '403': 0, '301': 0, 'err': 0 };
+        stats = { total: 0, '200': 0, '403': 0, '301': 0, 'ERR': 0 };
+        currentFilter = 'all';
+        document.querySelectorAll('[id^="filter-"]').forEach(el => {
+            el.classList.remove('ring-2', 'ring-white/40');
+        });
         shouldStop = false;
         isRunning = true;
 
@@ -408,17 +413,20 @@
     }
 
     async function runSingleTest(baseUrl, { category, method, payload }) {
+        let statusLabel = 'ERR';
+        let errorMsg = null;
+        let testUrl = baseUrl;
+        
         try {
-            let url = baseUrl;
             let options = {
                 method: method,
                 headers: { 'X-Vuln-Type': category.toLowerCase().replace(/\s+/g, '-') }
             };
 
             if (category === 'Sensitive Files') {
-                url = `${baseUrl}/${payload}`;
+                testUrl = `${baseUrl}/${payload}`;
             } else if (method === 'GET') {
-                url = `${baseUrl}/?payload=${encodeURIComponent(payload)}`;
+                testUrl = `${baseUrl}/?payload=${encodeURIComponent(payload)}`;
             } else {
                 if (category === 'XXE') {
                     options.headers['Content-Type'] = 'application/xml';
@@ -432,35 +440,59 @@
                 }
             }
 
-            const response = await fetch(url, options);
+            const response = await fetch(testUrl, options);
             const status = response.status;
 
-            let statusLabel = status.toString();
             if (status >= 300 && status < 400) statusLabel = '301';
             else if (status === 403) statusLabel = '403';
             else if (status >= 200 && status < 300) statusLabel = '200';
             else statusLabel = 'ERR';
 
-            results.push({
-                category, method, status: statusLabel,
-                payload: payload.substring(0, 100) + (payload.length > 100 ? '...' : '')
-            });
-
-            stats.total++;
-            stats[statusLabel] = (stats[statusLabel] || 0) + 1;
-            updateTable();
-            updateStats();
-
         } catch (error) {
-            results.push({
-                category, method, status: 'ERR',
-                payload: payload.substring(0, 100) + (payload.length > 100 ? '...' : '')
-            });
-            stats.total++;
-            stats['err']++;
-            updateTable();
-            updateStats();
+            statusLabel = 'ERR';
+            errorMsg = error.message || 'Network error';
         }
+        
+        // Enregistrer le résultat
+        results.push({
+            category, method, status: statusLabel,
+            payload: payload.substring(0, 100) + (payload.length > 100 ? '...' : '')
+        });
+
+        stats.total++;
+        stats[statusLabel] = (stats[statusLabel] || 0) + 1;
+        updateTable();
+        updateStats();
+        
+        // Logger le test sur le serveur (y compris les erreurs)
+        try {
+            await fetch('/api/log-test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    category,
+                    method,
+                    payload: payload.substring(0, 500),
+                    status: statusLabel,
+                    error: errorMsg,
+                    targetUrl: testUrl
+                })
+            });
+        } catch (e) {
+            // Ignore logging errors
+        }
+    }
+    
+    function filterResults(filter) {
+        currentFilter = filter;
+        
+        // Mise à jour visuelle des filtres actifs
+        document.querySelectorAll('[id^="filter-"]').forEach(el => {
+            el.classList.remove('ring-2', 'ring-white/40');
+        });
+        document.getElementById('filter-' + filter).classList.add('ring-2', 'ring-white/40');
+        
+        updateTable();
     }
 
     function stopTests() {
@@ -471,7 +503,11 @@
 
     function clearResults() {
         results = [];
-        stats = { total: 0, '200': 0, '403': 0, '301': 0, 'err': 0 };
+        stats = { total: 0, '200': 0, '403': 0, '301': 0, 'ERR': 0 };
+        currentFilter = 'all';
+        document.querySelectorAll('[id^="filter-"]').forEach(el => {
+            el.classList.remove('ring-2', 'ring-white/40');
+        });
         updateTable();
         updateStats();
         document.getElementById('progressBar').classList.add('hidden');
@@ -484,17 +520,28 @@
 
     function updateTable() {
         const tbody = document.getElementById('resultsTable');
-        if (results.length === 0) {
+        
+        // Filtrer les résultats selon le filtre actif
+        let filteredResults = results;
+        if (currentFilter !== 'all') {
+            filteredResults = results.filter(r => r.status === currentFilter);
+        }
+        
+        if (filteredResults.length === 0) {
+            const message = results.length === 0 
+                ? { icon: 'fa-flask-vial', title: 'Aucun résultat', sub: 'Lancez les tests pour commencer' }
+                : { icon: 'fa-filter', title: 'Aucun résultat pour ce filtre', sub: 'Cliquez sur "Total" pour voir tous les résultats' };
+            
             tbody.innerHTML = `<tr><td colspan="4" class="py-12 text-center text-dark-400">
                 <div class="w-16 h-16 rounded-2xl bg-dark-800 flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-flask-vial text-dark-500 text-2xl"></i>
+                    <i class="fas ${message.icon} text-dark-500 text-2xl"></i>
                 </div>
-                <p>Aucun résultat</p><p class="text-dark-500 text-sm mt-1">Lancez les tests pour commencer</p>
+                <p>${message.title}</p><p class="text-dark-500 text-sm mt-1">${message.sub}</p>
             </td></tr>`;
             return;
         }
 
-        tbody.innerHTML = results.slice(-100).reverse().map(r => `
+        tbody.innerHTML = filteredResults.slice(-100).reverse().map(r => `
             <tr class="hover:bg-dark-800/50 transition-colors">
                 <td class="py-3 px-6 text-white text-sm">${r.category}</td>
                 <td class="py-3 px-6"><span class="px-2 py-1 rounded-lg text-xs font-mono font-medium ${getMethodColor(r.method)}">${r.method}</span></td>
@@ -509,7 +556,7 @@
         document.getElementById('stat-200').textContent = stats['200'] || 0;
         document.getElementById('stat-403').textContent = stats['403'] || 0;
         document.getElementById('stat-301').textContent = stats['301'] || 0;
-        document.getElementById('stat-err').textContent = stats['err'] || 0;
+        document.getElementById('stat-err').textContent = stats['ERR'] || 0;
     }
 
     function getMethodColor(method) {
