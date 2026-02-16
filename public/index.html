@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -74,35 +74,76 @@
                 <i class="fas fa-satellite-dish text-white text-3xl"></i>
             </div>
             <h1 class="text-3xl font-bold text-white mb-2">WAF Debug Receiver</h1>
-            <p class="text-slate-400">Récepteur de requêtes pour tests WAF</p>
+            <p class="text-slate-400">Request receiver for WAF testing</p>
         </div>
 
-        <!-- Instructions -->
-        <div class="glass rounded-xl p-6 mb-8">
+        <!-- Tutorial Section (shown when no logs) -->
+        <div id="tutorialSection" class="glass rounded-xl p-6 mb-8">
             <div class="flex items-start gap-4">
                 <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-play text-emerald-400 text-xl"></i>
+                    <i class="fas fa-book-open text-emerald-400 text-xl"></i>
                 </div>
                 <div class="flex-1">
-                    <h2 class="text-xl font-semibold text-white mb-3">Comment utiliser</h2>
-                    <ol class="space-y-3 text-slate-300">
-                        <li class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
-                            <span>Allez sur <a href="https://waf.secmy.app/" target="_blank" class="text-accent-400 hover:underline font-medium">waf.secmy.app</a></span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
-                            <span>Entrez l'URL de ce serveur comme cible : <code class="bg-dark-800 px-2 py-1 rounded text-accent-300 font-mono text-sm" id="serverUrl"></code></span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
-                            <span>Lancez les tests depuis waf.secmy.app</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-accent-500/20 text-accent-400 flex items-center justify-center text-sm font-bold flex-shrink-0">4</span>
-                            <span>Consultez les <a href="/logs" class="text-accent-400 hover:underline font-medium">logs</a> pour voir les requêtes reçues et celles bloquées par votre WAF</span>
-                        </li>
-                    </ol>
+                    <h2 class="text-xl font-semibold text-white mb-4">Getting Started</h2>
+                    
+                    <div class="space-y-6">
+                        <!-- Step 1 -->
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-accent-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">1</div>
+                            <div>
+                                <h3 class="font-medium text-white mb-1">Open WAF Checker</h3>
+                                <p class="text-slate-400 text-sm">Go to <a href="https://waf.secmy.app/" target="_blank" class="text-accent-400 hover:underline font-medium">waf.secmy.app</a> - the WAF testing tool</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-accent-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">2</div>
+                            <div>
+                                <h3 class="font-medium text-white mb-1">Configure Target URL</h3>
+                                <p class="text-slate-400 text-sm mb-2">Enter this server's URL as the target:</p>
+                                <code class="bg-dark-800 px-3 py-2 rounded-lg text-accent-300 font-mono text-sm block" id="serverUrl"></code>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-accent-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">3</div>
+                            <div>
+                                <h3 class="font-medium text-white mb-1">Select Attack Categories</h3>
+                                <p class="text-slate-400 text-sm">Choose the attack types you want to test: SQL Injection, XSS, Path Traversal, Command Injection, SSRF, etc.</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-accent-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">4</div>
+                            <div>
+                                <h3 class="font-medium text-white mb-1">Run Tests</h3>
+                                <p class="text-slate-400 text-sm">Click "Start Check" to launch the tests against your WAF</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 5 -->
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-accent-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">5</div>
+                            <div>
+                                <h3 class="font-medium text-white mb-1">Analyze Results</h3>
+                                <p class="text-slate-400 text-sm">Check the <a href="/logs" class="text-accent-400 hover:underline">Logs</a> page to see which requests were received (passed through WAF) and which were blocked</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-blue-400 mt-0.5"></i>
+                            <div class="text-sm">
+                                <p class="text-blue-300 font-medium mb-1">How it works</p>
+                                <p class="text-slate-400">If your WAF is working correctly, malicious requests will be blocked and won't appear in the logs. Requests that appear here have successfully passed through your WAF - meaning they were NOT blocked.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -114,41 +155,41 @@
                     <i class="fas fa-inbox text-blue-400 text-xl"></i>
                 </div>
                 <p id="statTotal" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-slate-400 text-sm mt-1">Requêtes reçues</p>
+                <p class="text-slate-400 text-sm mt-1">Requests Received</p>
             </div>
             <div class="glass rounded-xl p-5 text-center">
                 <div class="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-network-wired text-violet-400 text-xl"></i>
                 </div>
                 <p id="statIps" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-slate-400 text-sm mt-1">IPs uniques</p>
+                <p class="text-slate-400 text-sm mt-1">Unique IPs</p>
             </div>
             <div class="glass rounded-xl p-5 text-center">
                 <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-globe text-amber-400 text-xl"></i>
                 </div>
                 <p id="statCountries" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-slate-400 text-sm mt-1">Pays</p>
+                <p class="text-slate-400 text-sm mt-1">Countries</p>
             </div>
             <div class="glass rounded-xl p-5 text-center">
                 <div class="w-12 h-12 rounded-xl bg-rose-500/20 flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-route text-rose-400 text-xl"></i>
                 </div>
                 <p id="statPaths" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-slate-400 text-sm mt-1">Chemins testés</p>
+                <p class="text-slate-400 text-sm mt-1">Paths Tested</p>
             </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <a href="/logs" class="glass rounded-xl p-5 hover:bg-dark-700/50 transition-all group">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-scroll text-blue-400 text-xl"></i>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-white">Voir les Logs</h3>
-                        <p class="text-slate-400 text-sm">Détails de chaque requête</p>
+                        <h3 class="font-semibold text-white">View Logs</h3>
+                        <p class="text-slate-400 text-sm">Request details</p>
                     </div>
                 </div>
             </a>
@@ -158,19 +199,30 @@
                         <i class="fas fa-chart-pie text-emerald-400 text-xl"></i>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-white">Statistiques</h3>
-                        <p class="text-slate-400 text-sm">Analyses détaillées</p>
+                        <h3 class="font-semibold text-white">Statistics</h3>
+                        <p class="text-slate-400 text-sm">Detailed analytics</p>
                     </div>
                 </div>
             </a>
+            <button onclick="exportLogs()" class="glass rounded-xl p-5 hover:bg-dark-700/50 transition-all group text-left">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fas fa-download text-violet-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-white">Export Logs</h3>
+                        <p class="text-slate-400 text-sm">Download as JSON</p>
+                    </div>
+                </div>
+            </button>
             <button onclick="clearLogs()" class="glass rounded-xl p-5 hover:bg-dark-700/50 transition-all group text-left">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-xl bg-rose-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <i class="fas fa-trash text-rose-400 text-xl"></i>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-white">Effacer les Logs</h3>
-                        <p class="text-slate-400 text-sm">Réinitialiser les données</p>
+                        <h3 class="font-semibold text-white">Clear All</h3>
+                        <p class="text-slate-400 text-sm">Reset logs & stats</p>
                     </div>
                 </div>
             </button>
@@ -184,20 +236,20 @@
                         <i class="fas fa-tower-broadcast text-accent-400"></i>
                     </div>
                     <div>
-                        <h2 class="font-semibold text-white">Activité en Direct</h2>
-                        <p class="text-slate-400 text-sm">Dernières requêtes reçues</p>
+                        <h2 class="font-semibold text-white">Live Activity</h2>
+                        <p class="text-slate-400 text-sm">Recent requests received</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
                     <div id="liveIndicator" class="w-2 h-2 bg-slate-500 rounded-full"></div>
-                    <span id="liveStatus" class="text-slate-400 text-sm font-medium">Connexion...</span>
+                    <span id="liveStatus" class="text-slate-400 text-sm font-medium">Connecting...</span>
                 </div>
             </div>
             <div id="liveActivity" class="p-4 space-y-2 max-h-[400px] overflow-y-auto">
                 <div class="text-center py-8 text-slate-400">
                     <i class="fas fa-satellite-dish text-4xl mb-3 opacity-50"></i>
-                    <p>En attente de requêtes...</p>
-                    <p class="text-sm text-slate-500 mt-1">Lancez les tests depuis waf.secmy.app</p>
+                    <p>Waiting for requests...</p>
+                    <p class="text-sm text-slate-500 mt-1">Run tests from waf.secmy.app</p>
                 </div>
             </div>
         </div>
@@ -220,21 +272,17 @@
         document.getElementById('serverUrl').textContent = window.location.origin;
         
         let recentLogs = [];
-        let wsConnected = false;
         let pollingInterval = null;
 
-        // Essayer WebSocket, sinon fallback vers polling
         function connectWebSocket() {
             try {
                 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                 const ws = new WebSocket(`${protocol}//${window.location.host}`);
                 
                 ws.onopen = () => {
-                    wsConnected = true;
                     document.getElementById('liveIndicator').className = 'w-2 h-2 bg-emerald-500 rounded-full animate-pulse';
                     document.getElementById('liveStatus').className = 'text-emerald-400 text-sm font-medium';
                     document.getElementById('liveStatus').textContent = 'Live';
-                    // Arrêter le polling si actif
                     if (pollingInterval) {
                         clearInterval(pollingInterval);
                         pollingInterval = null;
@@ -254,21 +302,17 @@
                 };
                 
                 ws.onerror = () => {
-                    console.log('WebSocket error, using polling fallback');
                     startPolling();
                 };
                 
                 ws.onclose = () => {
-                    wsConnected = false;
                     document.getElementById('liveIndicator').className = 'w-2 h-2 bg-amber-500 rounded-full animate-pulse';
                     document.getElementById('liveStatus').className = 'text-amber-400 text-sm font-medium';
                     document.getElementById('liveStatus').textContent = 'Polling';
                     startPolling();
-                    // Réessayer WebSocket après un délai
                     setTimeout(connectWebSocket, 10000);
                 };
             } catch (e) {
-                console.error('WebSocket not supported, using polling');
                 startPolling();
             }
         }
@@ -283,7 +327,6 @@
                 fetch('/api/logs?limit=20')
                     .then(res => res.json())
                     .then(data => {
-                        // Vérifier s'il y a de nouveaux logs
                         if (data.length > 0 && (!recentLogs.length || data[0].id !== recentLogs[0]?.id)) {
                             recentLogs = data;
                             updateLiveActivity();
@@ -294,20 +337,31 @@
             }, 2000);
         }
 
+        function updateTutorialVisibility() {
+            const tutorial = document.getElementById('tutorialSection');
+            if (recentLogs.length === 0) {
+                tutorial.style.display = 'block';
+            } else {
+                tutorial.style.display = 'none';
+            }
+        }
+
         function updateLiveActivity() {
+            updateTutorialVisibility();
             const container = document.getElementById('liveActivity');
             if (recentLogs.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-8 text-slate-400">
                         <i class="fas fa-satellite-dish text-4xl mb-3 opacity-50"></i>
-                        <p>En attente de requêtes...</p>
+                        <p>Waiting for requests...</p>
+                        <p class="text-sm text-slate-500 mt-1">Run tests from waf.secmy.app</p>
                     </div>
                 `;
                 return;
             }
 
             container.innerHTML = recentLogs.map(log => {
-                const time = new Date(log.timestamp).toLocaleTimeString('fr-FR');
+                const time = new Date(log.timestamp).toLocaleTimeString('en-US');
                 const attacks = log.detectedAttacks || [];
                 const methodColors = {
                     'GET': 'bg-blue-500/20 text-blue-400',
@@ -342,9 +396,33 @@
                 .catch(e => console.error('Stats error:', e));
         }
 
+        function exportLogs() {
+            fetch('/api/logs?limit=5000')
+                .then(res => res.json())
+                .then(logs => {
+                    if (logs.length === 0) {
+                        alert('No logs to export');
+                        return;
+                    }
+                    const dataStr = JSON.stringify(logs, null, 2);
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `waf-debug-logs-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                })
+                .catch(e => {
+                    console.error('Export error:', e);
+                    alert('Error exporting logs: ' + e.message);
+                });
+        }
+
         function clearLogs() {
-            if (confirm('Voulez-vous vraiment effacer tous les logs et statistiques ?')) {
-                // Utiliser GET pour éviter les blocages WAF sur POST
+            if (confirm('Are you sure you want to clear all logs and statistics?')) {
                 fetch('/api/clear-logs')
                 .then(res => {
                     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -355,14 +433,14 @@
                         recentLogs = [];
                         updateLiveActivity();
                         loadStats();
-                        alert('Logs et statistiques effacés avec succès !');
+                        alert('Logs and statistics cleared successfully!');
                     } else {
-                        alert('Erreur: ' + (data.error || 'Inconnu'));
+                        alert('Error: ' + (data.error || 'Unknown'));
                     }
                 })
                 .catch(e => {
                     console.error('Clear logs error:', e);
-                    alert('Erreur lors de la suppression: ' + e.message);
+                    alert('Error clearing logs: ' + e.message);
                 });
             }
         }

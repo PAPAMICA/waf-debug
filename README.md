@@ -23,7 +23,7 @@ docker-compose up -d
 # Ouvrir http://localhost dans votre navigateur
 ```
 
-### Sans Docker
+### Sans Docker (dev)
 
 ```bash
 # Installer les dépendances

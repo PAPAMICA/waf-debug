@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -75,8 +75,8 @@
                 <i class="fas fa-chart-pie text-emerald-400 text-xl"></i>
             </div>
             <div>
-                <h1 class="text-2xl font-bold text-white">Statistiques</h1>
-                <p class="text-slate-400">Vue d'ensemble des requêtes reçues</p>
+                <h1 class="text-2xl font-bold text-white">Statistics</h1>
+                <p class="text-slate-400">Overview of received requests</p>
             </div>
         </div>
 
@@ -87,28 +87,28 @@
                     <i class="fas fa-inbox text-blue-400 text-xl"></i>
                 </div>
                 <p id="statTotal" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-slate-400 text-sm mt-1">Total Requêtes</p>
+                <p class="text-slate-400 text-sm mt-1">Total Requests</p>
             </div>
             <div class="glass rounded-xl p-5 text-center">
                 <div class="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-network-wired text-violet-400 text-xl"></i>
                 </div>
                 <p id="statIps" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-slate-400 text-sm mt-1">IPs Uniques</p>
+                <p class="text-slate-400 text-sm mt-1">Unique IPs</p>
             </div>
             <div class="glass rounded-xl p-5 text-center">
                 <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-globe text-amber-400 text-xl"></i>
                 </div>
                 <p id="statCountries" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-slate-400 text-sm mt-1">Pays</p>
+                <p class="text-slate-400 text-sm mt-1">Countries</p>
             </div>
             <div class="glass rounded-xl p-5 text-center">
                 <div class="w-12 h-12 rounded-xl bg-rose-500/20 flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-route text-rose-400 text-xl"></i>
                 </div>
                 <p id="statPaths" class="text-3xl font-bold text-white font-mono">0</p>
-                <p class="text-slate-400 text-sm mt-1">Chemins Testés</p>
+                <p class="text-slate-400 text-sm mt-1">Paths Tested</p>
             </div>
         </div>
 
@@ -118,7 +118,7 @@
             <div class="glass rounded-xl p-6">
                 <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                     <i class="fas fa-code-branch text-blue-400"></i>
-                    Méthodes HTTP
+                    HTTP Methods
                 </h3>
                 <div class="h-64">
                     <canvas id="methodsChart"></canvas>
@@ -129,7 +129,7 @@
             <div class="glass rounded-xl p-6">
                 <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                     <i class="fas fa-globe-europe text-amber-400"></i>
-                    Pays d'Origine
+                    Countries
                 </h3>
                 <div class="h-64">
                     <canvas id="countriesChart"></canvas>
@@ -148,7 +148,7 @@
                     </h3>
                 </div>
                 <div id="topIps" class="p-4 max-h-80 overflow-y-auto">
-                    <div class="text-center py-8 text-slate-400">Chargement...</div>
+                    <div class="text-center py-8 text-slate-400">Loading...</div>
                 </div>
             </div>
             
@@ -157,11 +157,11 @@
                 <div class="px-6 py-4 border-b border-dark-700/50">
                     <h3 class="font-semibold text-white flex items-center gap-2">
                         <i class="fas fa-route text-rose-400"></i>
-                        Top Chemins
+                        Top Paths
                     </h3>
                 </div>
                 <div id="topPaths" class="p-4 max-h-80 overflow-y-auto">
-                    <div class="text-center py-8 text-slate-400">Chargement...</div>
+                    <div class="text-center py-8 text-slate-400">Loading...</div>
                 </div>
             </div>
         </div>
@@ -275,7 +275,7 @@
                             <span class="font-mono text-sm text-slate-300">${ip}</span>
                             <span class="px-2 py-1 bg-violet-500/20 text-violet-400 rounded text-xs font-bold">${count}</span>
                         </div>
-                    `).join('') : '<div class="text-center py-8 text-slate-400">Aucune donnée</div>';
+                    `).join('') : '<div class="text-center py-8 text-slate-400">No data</div>';
 
                     // Top Paths
                     const topPaths = Object.entries(stats.byPath || {})
@@ -287,7 +287,7 @@
                             <span class="font-mono text-sm text-accent-300 truncate mr-2" title="${path}">${path}</span>
                             <span class="px-2 py-1 bg-rose-500/20 text-rose-400 rounded text-xs font-bold flex-shrink-0">${count}</span>
                         </div>
-                    `).join('') : '<div class="text-center py-8 text-slate-400">Aucune donnée</div>';
+                    `).join('') : '<div class="text-center py-8 text-slate-400">No data</div>';
                 })
                 .catch(e => console.error('Stats error:', e));
         }
